@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Urban Bistro - Order Now</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="menu-page">
+    <!-- Header -->
+    <header class="menu-header">
+        <div class="container">
+            <div class="restaurant-brand">
+                <div class="restaurant-logo">
+                    <i class="fas fa-leaf"></i>
+                </div>
+                <div class="restaurant-info">
+                    <h1>The Urban Bistro</h1>
+                    <span class="qr-badge">
+                        <i class="fas fa-qrcode"></i>
+                        Scanned from Table QR
+                    </span>
+                </div>
+            </div>
+            <div class="header-actions">
+                <button class="table-indicator" id="tableIndicator">
+                    <i class="fas fa-chair"></i>
+                    <span>Table <strong id="tableNumber">12</strong></span>
+                    <i class="fas fa-chevron-down"></i>
+                </button>
+                <div class="order-status" id="orderStatus">
+                    <span class="status-dot"></span>
+                    <span class="status-text">Ready to Order</span>
+                </div>
+                <button class="cart-btn" id="cartToggle">
+                    <i class="fas fa-shopping-basket"></i>
+                    <span class="cart-count" id="cartCount">0</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Table Selection Modal -->
+    <div class="modal" id="tableModal">
+        <div class="modal-content table-modal">
+            <div class="modal-header">
+                <h3>Select Your Table</h3>
+                <button class="modal-close" aria-label="Close modal"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="table-grid">
+                <button class="table-btn" data-table="1">1</button>
+                <button class="table-btn" data-table="2">2</button>
+                <button class="table-btn" data-table="3">3</button>
+                <button class="table-btn" data-table="4">4</button>
+                <button class="table-btn" data-table="5">5</button>
+                <button class="table-btn" data-table="6">6</button>
+                <button class="table-btn" data-table="7">7</button>
+                <button class="table-btn" data-table="8">8</button>
+                <button class="table-btn" data-table="9">9</button>
+                <button class="table-btn" data-table="10">10</button>
+                <button class="table-btn" data-table="11">11</button>
+                <button class="table-btn selected" data-table="12">12</button>
+                <button class="table-btn occupied" data-table="13" disabled>13</button>
+                <button class="table-btn" data-table="14">14</button>
+                <button class="table-btn occupied" data-table="15" disabled>15</button>
+                <button class="table-btn" data-table="16">16</button>
+            </div>
+            <div class="table-legend">
+                <span><span class="legend-dot available"></span> Available</span>
+                <span><span class="legend-dot occupied"></span> Occupied</span>
+                <span><span class="legend-dot selected"></span> Selected</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <main class="menu-main">
+        <div class="container">
+            <!-- Menu Section -->
+            <div class="menu-section">
+                <!-- Search and Filters -->
+                <div class="menu-controls">
+                    <div class="search-bar">
+                        <i class="fas fa-search"></i>
+                        <input type="text" id="menuSearch" placeholder="Search menu items...">
+                        <button class="clear-search" id="clearSearch" aria-label="Clear search">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <div class="filter-tags">
+                        <button class="filter-tag active" data-filter="all">All</button>
+                        <button class="filter-tag" data-filter="veg">
+                            <span class="veg-icon"></span> Veg
+                        </button>
+                        <button class="filter-tag" data-filter="non-veg">
+                            <span class="non-veg-icon"></span> Non-Veg
+                        </button>
+                        <button class="filter-tag" data-filter="vegan">
+                            <i class="fas fa-seedling"></i> Vegan
+                        </button>
+                        <button class="filter-tag" data-filter="spicy">
+                            <i class="fas fa-pepper-hot"></i> Spicy
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Category Tabs -->
+                <div class="category-tabs">
+                    <button class="category-tab active" data-category="starters">
+                        <i class="fas fa-carrot"></i>
+                        Starters
+                    </button>
+                    <button class="category-tab" data-category="main">
+                        <i class="fas fa-drumstick-bite"></i>
+                        Main Course
+                    </button>
+                    <button class="category-tab" data-category="desserts">
+                        <i class="fas fa-ice-cream"></i>
+                        Desserts
+                    </button>
+                    <button class="category-tab" data-category="beverages">
+                        <i class="fas fa-coffee"></i>
+                        Beverages
+                    </button>
+                </div>
+
+                <!-- Menu Grid -->
+                <div class="menu-grid" id="menuGrid">
+                    <!-- Starters -->
+                    <div class="menu-card" data-category="starters" data-filter="veg" data-id="1">
+                        <div class="card-image">
+                            <div class="image-placeholder">
+                                <i class="fas fa-seedling"></i>
+                            </div>
+                            <span class="food-badge veg"></span>
+                        </div>
+                        <div class="card-content">
+                            <h3>Garden Fresh Bruschetta</h3>
+                            <p>Toasted bread topped with fresh tomatoes, basil, and balsamic glaze</p>
+                            <div class="card-footer">
+                                <span class="price">$8.99</span>
+                                <button class="add-btn" data-id="1" data-name="Garden Fresh Bruschetta" data-price="8.99">
+                                    <span class="add-text"><i class="fas fa-plus"></i> Add</span>
+                                    <span class="added-text"><i class="fas fa-check"></i> Added</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="menu-card" data-category="starters" data-filter="non-veg spicy" data-id="2">
+                        <div class="card-image">
+                            <div class="image-placeholder">
+                                <i class="fas fa-drumstick-bite"></i>
+                            </div>
+                            <span class="food-badge non-veg"></span>
+                            <span class="spicy-badge"><i class="fas fa-pepper-hot"></i></span>
+                        </div>
+                        <div class="card-content">
+                            <h3>Spicy Buffalo Wings</h3>
+                            <p>Crispy chicken wings tossed in our signature spicy buffalo sauce</p>
+                            <div class="card-footer">
+                                <span class="price">$12.99</span>
+                                <button class="add-btn" data-id="2" data-name="Spicy Buffalo Wings" data-price="12.99">
+                                    <span class="add-text"><i class="fas fa-plus"></i> Add</span>
+                                    <span class="added-text"><i class="fas fa-check"></i> Added</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="menu-card" data-category="starters" data-filter="vegan" data-id="3">
+                        <div class="card-image">
+                            <div class="image-placeholder">
+                                <i class="fas fa-leaf"></i>
+                            </div>
+                            <span class="food-badge vegan"></span>
+                        </div>
+                        <div class="card-content">
+                            <h3>Hummus Platter</h3>
+                            <p>Creamy hummus served with warm pita bread and fresh vegetables</p>
+                            <div class="card-footer">
+                                <span class="price">$9.99</span>
+                                <button class="add-btn" data-id="3" data-name="Hummus Platter" data-price="9.99">
+                                    <span class="add-text"><i class="fas fa-plus"></i> Add</span>
+                                    <span class="added-text"><i class="fas fa-check"></i> Added</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="menu-card" data-category="starters" data-filter="non-veg" data-id="4">
+                        <div class="card-image">
+                            <div class="image-placeholder">
+                                <i class="fas fa-fish"></i>
+                            </div>
+                            <span class="food-badge non-veg"></span>
+                        </div>
+                        <div class="card-content">
+                            <h3>Crispy Calamari</h3>
+                            <p>Lightly battered squid rings served with marinara sauce</p>
+                            <div class="card-footer">
+                                <span class="price">$14.99</span>
+                                <button class="add-btn" data-id="4" data-name="Crispy Calamari" data-price="14.99">
+                                    <span class="add-text"><i class="fas fa-plus"></i> Add</span>
+                                    <span class="added-text"><i class="fas fa-check"></i> Added</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Main Course -->
+                    <div class="menu-card" data-category="main" data-filter="non-veg" data-id="5">
+                        <div class="card-image">
+                            <div class="image-placeholder">
+                                <i class="fas fa-bacon"></i>
+                            </div>
+                            <span class="food-badge non-veg"></span>
+                            <!-- <span class="popular-badge">Popular</span> -->
+                        </div>
+                        <div class="card-content">
+                            <h3>Grilled Ribeye Steak</h3>
+                            <p>12oz prime ribeye with garlic butter, served with roasted vegetables</p>
+                            <div class="card-footer">
+                                <span class="price">$34.99</span>
+                                <button class="add-btn" data-id="5" data-name="Grilled Ribeye Steak" data-price="34.99">
+                                    <span class="add-text"><i class="fas fa-plus"></i> Add</span>
+                                    <span class="added-text"><i class="fas fa-check"></i> Added</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="menu-card" data-category="main" data-filter="non-veg" data-id="6">
+                        <div class="card-image">
+                            <div class="image-placeholder">
+                                <i class="fas fa-fish"></i>
+                            </div>
+                            <span class="food-badge non-veg"></span>
+                        </div>
+                        <div class="card-content">
+                            <h3>Pan-Seared Salmon</h3>
+                            <p>Atlantic salmon with lemon dill sauce and quinoa pilaf</p>
+                            <div class="card-footer">
+                                <span class="price">$28.99</span>
+                                <button class="add-btn" data-id="6" data-name="Pan-Seared Salmon" data-price="28.99">
+                                    <span class="add-text"><i class="fas fa-plus"></i> Add</span>
+                                    <span class="added-text"><i class="fas fa-check"></i> Added</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="menu-card" data-category="main" data-filter="veg" data-id="7">
+                        <div class="card-image">
+                            <div class="image-placeholder">
+                                <i class="fas fa-cheese"></i>
+                            </div>
+                            <span class="food-badge veg"></span>
+                        </div>
+                        <div class="card-content">
+                            <h3>Mushroom Risotto</h3>
+                            <p>Creamy arborio rice with wild mushrooms and parmesan</p>
+                            <div class="card-footer">
+                                <span class="price">$22.99</span>
+                                <button class="add-btn" data-id="7" data-name="Mushroom Risotto" data-price="22.99">
+                                    <span class="add-text"><i class="fas fa-plus"></i> Add</span>
+                                    <span class="added-text"><i class="fas fa-check"></i> Added</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="menu-card" data-category="main" data-filter="non-veg spicy" data-id="8">
+                        <div class="card-image">
+                            <div class="image-placeholder">
+                                <i class="fas fa-drumstick-bite"></i>
+                            </div>
+                            <span class="food-badge non-veg"></span>
+                            <span class="spicy-badge"><i class="fas fa-pepper-hot"></i></span>
+                        </div>
+                        <div class="card-content">
+                            <h3>Thai Green Curry</h3>
+                            <p>Tender chicken in aromatic coconut curry with jasmine rice</p>
+                            <div class="card-footer">
+                                <span class="price">$19.99</span>
+                                <button class="add-btn" data-id="8" data-name="Thai Green Curry" data-price="19.99">
+                                    <span class="add-text"><i class="fas fa-plus"></i> Add</span>
+                                    <span class="added-text"><i class="fas fa-check"></i> Added</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="menu-card" data-category="main" data-filter="vegan" data-id="9">
+                        <div class="card-image">
+                            <div class="image-placeholder">
+                                <i class="fas fa-bowl-food"></i>
+                            </div>
+                            <span class="food-badge vegan"></span>
+                        </div>
+                        <div class="card-content">
+                            <h3>Buddha Bowl</h3>
+                            <p>Quinoa, roasted chickpeas, avocado, and tahini dressing</p>
+                            <div class="card-footer">
+                                <span class="price">$16.99</span>
+                                <button class="add-btn" data-id="9" data-name="Buddha Bowl" data-price="16.99">
+                                    <span class="add-text"><i class="fas fa-plus"></i> Add</span>
+                                    <span class="added-text"><i class="fas fa-check"></i> Added</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Desserts -->
+                    <div class="menu-card" data-category="desserts" data-filter="veg" data-id="10">
+                        <div class="card-image">
+                            <div class="image-placeholder">
+                                <i class="fas fa-cake-candles"></i>
+                            </div>
+                            <span class="food-badge veg"></span>
+                            <!-- <span class="popular-badge">Popular</span> -->
+                        </div>
+                        <div class="card-content">
+                            <h3>Molten Chocolate Cake</h3>
+                            <p>Warm chocolate cake with a gooey center, served with vanilla ice cream</p>
+                            <div class="card-footer">
+                                <span class="price">$10.99</span>
+                                <button class="add-btn" data-id="10" data-name="Molten Chocolate Cake" data-price="10.99">
+                                    <span class="add-text"><i class="fas fa-plus"></i> Add</span>
+                                    <span class="added-text"><i class="fas fa-check"></i> Added</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="menu-card" data-category="desserts" data-filter="veg" data-id="11">
+                        <div class="card-image">
+                            <div class="image-placeholder">
+                                <i class="fas fa-ice-cream"></i>
+                            </div>
+                            <span class="food-badge veg"></span>
+                        </div>
+                        <div class="card-content">
+                            <h3>Tiramisu</h3>
+                            <p>Classic Italian dessert with espresso-soaked ladyfingers and mascarpone</p>
+                            <div class="card-footer">
+                                <span class="price">$9.99</span>
+                                <button class="add-btn" data-id="11" data-name="Tiramisu" data-price="9.99">
+                                    <span class="add-text"><i class="fas fa-plus"></i> Add</span>
+                                    <span class="added-text"><i class="fas fa-check"></i> Added</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="menu-card" data-category="desserts" data-filter="vegan" data-id="12">
+                        <div class="card-image">
+                            <div class="image-placeholder">
+                                <i class="fas fa-apple-whole"></i>
+                            </div>
+                            <span class="food-badge vegan"></span>
+                        </div>
+                        <div class="card-content">
+                            <h3>Fresh Fruit Sorbet</h3>
+                            <p>Assorted seasonal fruit sorbets - refreshing and dairy-free</p>
+                            <div class="card-footer">
+                                <span class="price">$7.99</span>
+                                <button class="add-btn" data-id="12" data-name="Fresh Fruit Sorbet" data-price="7.99">
+                                    <span class="add-text"><i class="fas fa-plus"></i> Add</span>
+                                    <span class="added-text"><i class="fas fa-check"></i> Added</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Beverages -->
+                    <div class="menu-card" data-category="beverages" data-filter="veg" data-id="13">
+                        <div class="card-image">
+                            <div class="image-placeholder">
+                                <i class="fas fa-mug-hot"></i>
+                            </div>
+                            <span class="food-badge veg"></span>
+                        </div>
+                        <div class="card-content">
+                            <h3>Artisan Coffee</h3>
+                            <p>Freshly brewed single-origin coffee - Americano, Latte, or Cappuccino</p>
+                            <div class="card-footer">
+                                <span class="price">$4.99</span>
+                                <button class="add-btn" data-id="13" data-name="Artisan Coffee" data-price="4.99">
+                                    <span class="add-text"><i class="fas fa-plus"></i> Add</span>
+                                    <span class="added-text"><i class="fas fa-check"></i> Added</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="menu-card" data-category="beverages" data-filter="vegan" data-id="14">
+                        <div class="card-image">
+                            <div class="image-placeholder">
+                                <i class="fas fa-glass-water"></i>
+                            </div>
+                            <span class="food-badge vegan"></span>
+                        </div>
+                        <div class="card-content">
+                            <h3>Fresh Lemonade</h3>
+                            <p>House-made lemonade with fresh mint - classic or strawberry</p>
+                            <div class="card-footer">
+                                <span class="price">$5.99</span>
+                                <button class="add-btn" data-id="14" data-name="Fresh Lemonade" data-price="5.99">
+                                    <span class="add-text"><i class="fas fa-plus"></i> Add</span>
+                                    <span class="added-text"><i class="fas fa-check"></i> Added</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="menu-card" data-category="beverages" data-filter="vegan" data-id="15">
+                        <div class="card-image">
+                            <div class="image-placeholder">
+                                <i class="fas fa-blender"></i>
+                            </div>
+                            <span class="food-badge vegan"></span>
+                        </div>
+                        <div class="card-content">
+                            <h3>Tropical Smoothie</h3>
+                            <p>Mango, pineapple, and coconut blended to perfection</p>
+                            <div class="card-footer">
+                                <span class="price">$7.99</span>
+                                <button class="add-btn" data-id="15" data-name="Tropical Smoothie" data-price="7.99">
+                                    <span class="add-text"><i class="fas fa-plus"></i> Add</span>
+                                    <span class="added-text"><i class="fas fa-check"></i> Added</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="menu-card" data-category="beverages" data-filter="veg" data-id="16">
+                        <div class="card-image">
+                            <div class="image-placeholder">
+                                <i class="fas fa-wine-glass"></i>
+                            </div>
+                            <span class="food-badge veg"></span>
+                        </div>
+                        <div class="card-content">
+                            <h3>House Red Wine</h3>
+                            <p>Selection of fine red wines by the glass</p>
+                            <div class="card-footer">
+                                <span class="price">$12.99</span>
+                                <button class="add-btn" data-id="16" data-name="House Red Wine" data-price="12.99">
+                                    <span class="add-text"><i class="fas fa-plus"></i> Add</span>
+                                    <span class="added-text"><i class="fas fa-check"></i> Added</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Empty State -->
+                <div class="empty-state" id="emptyState">
+                    <i class="fas fa-search"></i>
+                    <h3>No items found</h3>
+                    <p>Try adjusting your search or filters</p>
+                </div>
+            </div>
+
+            <!-- Order Panel -->
+            <aside class="order-panel" id="orderPanel">
+                <div class="panel-header">
+                    <h2>Your Order</h2>
+                    <span class="item-count" id="itemCount">0 items</span>
+                </div>
+
+                <div class="order-items" id="orderItems">
+                    <div class="empty-cart">
+                        <i class="fas fa-shopping-basket"></i>
+                        <p>Your cart is empty</p>
+                        <span>Add items from the menu</span>
+                    </div>
+                </div>
+
+                <div class="order-summary" id="orderSummary">
+                    <div class="summary-row">
+                        <span>Subtotal</span>
+                        <span id="subtotal">$0.00</span>
+                    </div>
+                    <div class="summary-row">
+                        <span>Tax (10%)</span>
+                        <span id="tax">$0.00</span>
+                    </div>
+                    <div class="summary-row total">
+                        <span>Total</span>
+                        <span id="total">$0.00</span>
+                    </div>
+                </div>
+
+                <div class="order-actions">
+                    <button class="btn btn-primary btn-block" id="sendToKitchen" disabled>
+                        <i class="fas fa-paper-plane"></i>
+                        Send to Kitchen
+                    </button>
+                    <button class="btn btn-secondary btn-block" id="requestBill" style="display: none;">
+                        <i class="fas fa-receipt"></i>
+                        Request Bill
+                    </button>
+                </div>
+            </aside>
+        </div>
+    </main>
+
+    <!-- Mobile Cart Button -->
+    <button class="mobile-cart-btn" id="mobileCartBtn">
+        <i class="fas fa-shopping-basket"></i>
+        <span class="cart-count">0</span>
+        <span class="cart-total">$0.00</span>
+    </button>
+
+    <!-- Kitchen Notification -->
+    <div class="kitchen-notification" id="kitchenNotification">
+        <div class="notification-content">
+            <div class="notification-icon">
+                <i class="fas fa-check-circle"></i>
+            </div>
+            <div class="notification-text">
+                <strong>Order Sent!</strong>
+                <p>Your order has been received by the kitchen</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bill Modal -->
+    <div class="modal" id="billModal">
+        <div class="modal-content bill-modal">
+            <div class="bill-receipt">
+                <div class="receipt-header">
+                    <div class="restaurant-logo">
+                        <i class="fas fa-leaf"></i>
+                    </div>
+                    <h2>The Urban Bistro</h2>
+                    <p>123 Gourmet Street, Foodie City</p>
+                    <p>Tel: (555) 123-4567</p>
+                    <div class="receipt-divider"></div>
+                    <p class="receipt-date" id="receiptDate"></p>
+                    <p>Table: <span id="receiptTable">12</span></p>
+                </div>
+                
+                <div class="receipt-items" id="receiptItems">
+                    <!-- Items will be populated by JS -->
+                </div>
+
+                <div class="receipt-totals">
+                    <div class="receipt-row">
+                        <span>Subtotal</span>
+                        <span id="receiptSubtotal">$0.00</span>
+                    </div>
+                    <div class="receipt-row">
+                        <span>Tax (10%)</span>
+                        <span id="receiptTax">$0.00</span>
+                    </div>
+                    <div class="receipt-row total">
+                        <span>Total</span>
+                        <span id="receiptTotal">$0.00</span>
+                    </div>
+                </div>
+
+                <div class="receipt-footer">
+                    <p>Thank you for dining with us!</p>
+                    <div class="receipt-qr">
+                        <i class="fas fa-qrcode"></i>
+                        <span>Powered by QRMenu Pro</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bill-actions">
+                <button class="btn btn-outline" id="printBill">
+                    <i class="fas fa-print"></i>
+                    Print Bill
+                </button>
+                <button class="btn btn-primary" id="closeBill">
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Special Instructions Modal -->
+    <div class="modal" id="instructionsModal">
+        <div class="modal-content instructions-modal">
+            <div class="modal-header">
+                <h3>Special Instructions</h3>
+                <button class="modal-close" aria-label="Close modal"><i class="fas fa-times"></i></button>
+            </div>
+            <p class="item-name" id="instructionItemName"></p>
+            <textarea id="specialInstructions" placeholder="E.g., No onions, extra spicy, allergies..."></textarea>
+            <div class="modal-actions">
+                <button class="btn btn-outline" id="cancelInstructions">Cancel</button>
+                <button class="btn btn-primary" id="saveInstructions">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Back to Top -->
+    <button class="back-to-top" id="backToTop" aria-label="Back to top">
+        <i class="fas fa-arrow-up"></i>
+    </button>
+
+    <script src="script.js"></script>
+</body>
+</html>
