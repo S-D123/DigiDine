@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - QRMenu Pro</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="admin-page">
+    <div class="admin-layout">
+        <aside class="admin-sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <div class="logo-icon">
+                        <i class="fas fa-qrcode"></i>
+                        <i class="fas fa-utensils"></i>
+                    </div>
+                    <span class="logo-text">QRMenu Admin</span>
+                </div>
+            </div>
+            <nav class="sidebar-nav">
+                <button class="nav-item active" data-tab="live-orders">
+                    <i class="fas fa-concierge-bell"></i> Live Orders
+                </button>
+                <button class="nav-item" data-tab="order-history">
+                    <i class="fas fa-history"></i> Order History
+                </button>
+                <a href="index.html" class="nav-item logout-btn">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </a>
+            </nav>
+        </aside>
+
+        <main class="admin-main">
+            <header class="admin-header">
+                <h2>Dashboard</h2>
+                <div class="admin-profile">
+                    <div class="kitchen-status">
+                        <span class="status-dot"></span> Kitchen Online
+                    </div>
+                    <div class="avatar">Admin</div>
+                </div>
+            </header>
+
+            <div id="live-orders" class="admin-tab-content active">
+                <div class="section-header">
+                    <h3>Active Orders</h3>
+                    <p>Manage real-time orders from tables</p>
+                </div>
+                
+                <div class="orders-grid" id="activeOrdersGrid">
+                    </div>
+            </div>
+
+            <div id="order-history" class="admin-tab-content">
+                <div class="section-header">
+                    <h3>Order History</h3>
+                    <p>View past orders and customer details</p>
+                </div>
+
+                <div class="history-table-container">
+                    <table class="history-table">
+                        <thead>
+                            <tr>
+                                <th>Order ID</th>
+                                <th>Table</th>
+                                <th>Date & Time</th>
+                                <th>Total</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="historyTableBody">
+                            </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div class="modal" id="orderDetailsModal">
+        <div class="modal-content order-details-modal">
+            <div class="modal-header">
+                <h3>Order Details <span id="modalOrderId" class="text-muted"></span></h3>
+                <button class="modal-close" aria-label="Close modal"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <div class="customer-info">
+                    <div class="info-group">
+                        <i class="fas fa-phone"></i>
+                        <div>
+                            <strong>Customer Phone</strong>
+                            <p id="modalPhone">+1 (555) 000-0000</p>
+                        </div>
+                    </div>
+                    <div class="info-group">
+                        <i class="fas fa-chair"></i>
+                        <div>
+                            <strong>Table Number</strong>
+                            <p id="modalTable">12</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="timeline">
+                    <div class="timeline-step">
+                        <div class="step-icon"><i class="fas fa-receipt"></i></div>
+                        <div class="step-content">
+                            <strong>Order Placed</strong>
+                            <span id="modalTimeOrdered">12:30 PM</span>
+                        </div>
+                    </div>
+                    <div class="timeline-step">
+                        <div class="step-icon"><i class="fas fa-utensils"></i></div>
+                        <div class="step-content">
+                            <strong>Order Delivered</strong>
+                            <span id="modalTimeDelivered">12:45 PM</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="order-items-list">
+                    <h4>Items Ordered</h4>
+                    <ul id="modalItemsList">
+                        </ul>
+                </div>
+                
+                <div class="order-total-display">
+                    <strong>Total Amount:</strong>
+                    <span id="modalTotalAmount">$0.00</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

@@ -440,6 +440,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
+    
     // Close modals
     document.querySelectorAll('.modal-close, #closeBill, #cancelInstructions').forEach(btn => {
         btn.addEventListener('click', function() {
@@ -818,3 +819,244 @@ style.textContent = `
     }
 `;
 document.head.appendChild(style);
+
+// ========================================
+// ADMIN PAGE FUNCTIONALITY
+// ========================================
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Only run on admin page
+    if (!document.querySelector('.admin-page')) return;
+
+    // --- Tab Navigation ---
+    const navItems = document.querySelectorAll('.sidebar-nav .nav-item[data-tab]');
+    const tabContents = document.querySelectorAll('.admin-tab-content');
+
+    navItems.forEach(item => {
+        item.addEventListener('click', function() {
+            // Remove active class from all
+            navItems.forEach(nav => nav.classList.remove('active'));
+            tabContents.forEach(tab => tab.classList.remove('active'));
+
+            // Add active class to clicked
+            this.classList.add('active');
+            const tabId = this.getAttribute('data-tab');
+            document.getElementById(tabId).classList.add('active');
+        });
+    });
+
+    // --- Mock Data Initialization ---
+    // If a user just ordered from menu.html, it will be in sessionStorage. 
+    // We check `orderSent` to create a live order dynamically.
+    let liveOrders = [];
+    const hasPendingOrder = sessionStorage.getItem('orderSent') === 'true';
+    const currentTable = sessionStorage.getItem('currentTable') || '12';
+    const cartData = JSON.parse(sessionStorage.getItem('cart')) || [];
+
+    if (hasPendingOrder && cartData.length > 0) {
+        liveOrders.push({
+            id: 'ORD-' + Math.floor(Math.random() * 10000),
+            table: currentTable,
+            status: 'pending', // pending, preparing, ready
+            timePlaced: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
+            items: cartData
+        });
+    } else {
+        // Fallback mock live order if none in session
+        liveOrders.push({
+            id: 'ORD-9021',
+            table: '5',
+            status: 'pending',
+            timePlaced: '12:25 PM',
+            items: [
+                { name: 'Spicy Buffalo Wings', qty: 2 },
+                { name: 'House Red Wine', qty: 1 }
+            ]
+        });
+    }
+
+    // --- Mock Order History (Updated with item-level times) ---
+    const orderHistory = [
+        {
+            id: '#10452',
+            table: '8',
+            date: 'Today, 11:30 AM',
+            timeOrdered: '11:30 AM',
+            timeDelivered: '11:55 AM',
+            phone: '+1 (555) 987-6543',
+            total: '$42.50',
+            status: 'Completed',
+            items: [
+                { name: 'Mushroom Risotto', qty: 1, price: 22.99, timeOrdered: '11:30 AM', timeDelivered: '11:50 AM' },
+                { name: 'Tiramisu', qty: 1, price: 9.99, timeOrdered: '11:45 AM', timeDelivered: '11:55 AM' },
+                { name: 'Fresh Lemonade', qty: 2, price: 5.99, timeOrdered: '11:30 AM', timeDelivered: '11:35 AM' }
+            ]
+        },
+        {
+            id: '#10451',
+            table: '3',
+            date: 'Today, 10:15 AM',
+            timeOrdered: '10:15 AM',
+            timeDelivered: '10:35 AM',
+            phone: '+1 (555) 123-4567',
+            total: '$18.98',
+            status: 'Completed',
+            items: [
+                { name: 'Garden Fresh Bruschetta', qty: 1, price: 8.99, timeOrdered: '10:15 AM', timeDelivered: '10:25 AM' },
+                { name: 'Artisan Coffee', qty: 2, price: 4.99, timeOrdered: '10:20 AM', timeDelivered: '10:35 AM' }
+            ]
+        }
+    ];
+
+    
+
+    // --- Render Live Orders ---
+    const activeOrdersGrid = document.getElementById('activeOrdersGrid');
+
+    function renderLiveOrders() {
+        if (!activeOrdersGrid) return;
+        activeOrdersGrid.innerHTML = '';
+
+        if (liveOrders.length === 0) {
+            activeOrdersGrid.innerHTML = `<p style="color: var(--gray-500);">No active orders at the moment.</p>`;
+            return;
+        }
+
+        liveOrders.forEach(order => {
+            const card = document.createElement('div');
+            card.className = `admin-order-card status-${order.status}`;
+            
+            // Format items list
+            const itemsHtml = order.items.map(item => `
+                <div class="admin-order-item">
+                    <span>${item.qty}x ${item.name}</span>
+                </div>
+            `).join('');
+
+            // Buttons based on status
+            let buttonsHtml = '';
+            if (order.status === 'pending') {
+                buttonsHtml = `<button class="btn btn-primary btn-block" onclick="updateOrderStatus('${order.id}', 'preparing')">Accept & Prepare</button>`;
+            } else if (order.status === 'preparing') {
+                buttonsHtml = `<button class="btn btn-success btn-block" style="background:var(--success); color:white;" onclick="updateOrderStatus('${order.id}', 'ready')">Mark as Ready</button>`;
+            } else if (order.status === 'ready') {
+                buttonsHtml = `<button class="btn btn-outline btn-block" onclick="completeOrder('${order.id}')">Served to Table</button>`;
+            }
+
+            card.innerHTML = `
+                <div class="admin-order-header">
+                    <span class="admin-order-table">Table ${order.table}</span>
+                    <span class="admin-order-time">${order.timePlaced}</span>
+                </div>
+                <div class="admin-order-items">
+                    ${itemsHtml}
+                </div>
+                <div class="admin-order-actions">
+                    ${buttonsHtml}
+                </div>
+            `;
+            activeOrdersGrid.appendChild(card);
+        });
+    }
+
+    // Expose functions to window so inline onclick works
+    window.updateOrderStatus = function(orderId, newStatus) {
+        const order = liveOrders.find(o => o.id === orderId);
+        if (order) {
+            order.status = newStatus;
+            renderLiveOrders();
+        }
+    };
+
+    window.completeOrder = function(orderId) {
+        const orderIndex = liveOrders.findIndex(o => o.id === orderId);
+        if (orderIndex > -1) {
+            // Remove from live, we could push to history in a real app
+            liveOrders.splice(orderIndex, 1);
+            // Reset customer session if it matches their order
+            sessionStorage.removeItem('orderSent');
+            sessionStorage.removeItem('cart');
+            renderLiveOrders();
+        }
+    };
+
+    // --- Render History Table ---
+    const historyTableBody = document.getElementById('historyTableBody');
+    
+    function renderHistory() {
+        if (!historyTableBody) return;
+        historyTableBody.innerHTML = '';
+
+        orderHistory.forEach((order, index) => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td><strong>${order.id}</strong></td>
+                <td>Table ${order.table}</td>
+                <td>${order.date}</td>
+                <td><strong>${order.total}</strong></td>
+                <td><span class="status-badge completed">${order.status}</span></td>
+                <td>
+                    <button class="btn btn-outline" style="padding: 0.25rem 0.75rem; font-size: 0.8125rem;" onclick="openOrderModal(${index})">
+                        View Details
+                    </button>
+                </td>
+            `;
+            historyTableBody.appendChild(tr);
+        });
+    }
+
+    // --- Order Details Modal (Updated list generation) ---
+    const orderDetailsModal = document.getElementById('orderDetailsModal');
+
+    window.openOrderModal = function(historyIndex) {
+        const order = orderHistory[historyIndex];
+        if (!order) return;
+
+        // Populate Modal Data
+        document.getElementById('modalOrderId').textContent = `(${order.id})`;
+        document.getElementById('modalPhone').textContent = order.phone;
+        document.getElementById('modalTable').textContent = order.table;
+        document.getElementById('modalTimeOrdered').textContent = order.timeOrdered;
+        document.getElementById('modalTimeDelivered').textContent = order.timeDelivered;
+        document.getElementById('modalTotalAmount').textContent = order.total;
+
+        // Populate Items with individual times
+        const itemsList = document.getElementById('modalItemsList');
+        itemsList.innerHTML = order.items.map(item => `
+            <li class="modal-item-row">
+                <div class="item-main-info">
+                    <span class="item-name">${item.qty}x ${item.name}</span>
+                    <span class="item-price">$${(item.price * item.qty).toFixed(2)}</span>
+                </div>
+                <div class="item-timing-info">
+                    <span><i class="fas fa-clock"></i> Ordered: ${item.timeOrdered || order.timeOrdered}</span>
+                    <span><i class="fas fa-check-circle"></i> Served: ${item.timeDelivered || 'Pending'}</span>
+                </div>
+            </li>
+        `).join('');
+
+        orderDetailsModal.classList.add('active');
+    };
+
+    // Close modal handles already exist in the global script.js (looking for `.modal-close` and clicking outside)
+        // Close modals
+        document.querySelectorAll('.modal-close, #closeBill, #cancelInstructions').forEach(btn => {
+            btn.addEventListener('click', function() {
+                this.closest('.modal').classList.remove('active');
+            });
+        });
+
+        // Click outside modal to close
+        document.querySelectorAll('.modal').forEach(modal => {
+            modal.addEventListener('click', function(e) {
+                if (e.target === this) {
+                    this.classList.remove('active');
+                }
+            });
+        });
+
+
+    // Initial renders
+    renderLiveOrders();
+    renderHistory();
+});

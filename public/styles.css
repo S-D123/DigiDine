@@ -2821,3 +2821,492 @@ input, textarea, select {
         border: 1px solid var(--gray-300);
     }
 }
+
+/* ========================================
+   ADMIN DASHBOARD STYLES
+   ======================================== */
+
+.admin-page {
+    background: var(--gray-100);
+    margin: 0;
+    overflow-x: hidden;
+}
+
+.admin-layout {
+    display: flex;
+    min-height: 100vh;
+}
+
+/* Sidebar */
+.admin-sidebar {
+    width: 260px;
+    background: var(--white);
+    border-right: 1px solid var(--gray-200);
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 100;
+}
+
+.sidebar-header {
+    padding: var(--spacing-xl) var(--spacing-md);
+    border-bottom: 1px solid var(--gray-100);
+}
+
+.sidebar-nav {
+    padding: var(--spacing-md) 0;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+}
+
+.nav-item {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+    padding: var(--spacing-md) var(--spacing-xl);
+    color: var(--gray-600);
+    font-size: 1rem;
+    font-weight: 500;
+    transition: all var(--transition-fast);
+    text-align: left;
+    width: 100%;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+}
+
+.nav-item i {
+    font-size: 1.25rem;
+    width: 24px;
+    text-align: center;
+}
+
+.nav-item:hover, .nav-item.active {
+    color: var(--primary);
+    background: var(--gray-50);
+    border-right: 4px solid var(--primary);
+}
+
+.logout-btn {
+    margin-top: auto;
+    color: var(--error);
+}
+.logout-btn:hover {
+    color: var(--error);
+    background: #FFEBEE;
+    border-right: 4px solid var(--error);
+}
+
+/* Main Content */
+.admin-main {
+    flex: 1;
+    margin-left: 260px;
+    display: flex;
+    flex-direction: column;
+}
+
+.admin-header {
+    height: 70px;
+    background: var(--white);
+    border-bottom: 1px solid var(--gray-200);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 var(--spacing-xl);
+    position: sticky;
+    top: 0;
+    z-index: 90;
+}
+
+.admin-header h2 {
+    font-size: 1.25rem;
+    color: var(--gray-900);
+}
+
+.admin-profile {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-lg);
+}
+
+.kitchen-status {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    font-size: 0.875rem;
+    color: var(--success);
+    font-weight: 500;
+}
+
+.kitchen-status .status-dot {
+    width: 10px;
+    height: 10px;
+    background: var(--success);
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+}
+
+.avatar {
+    width: 40px;
+    height: 40px;
+    background: var(--primary);
+    color: var(--white);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 0.875rem;
+}
+
+/* Tabs */
+.admin-tab-content {
+    display: none;
+    padding: var(--spacing-xl);
+    flex: 1;
+}
+
+.admin-tab-content.active {
+    display: block;
+    animation: fadeIn 0.3s ease;
+}
+
+.section-header {
+    margin-bottom: var(--spacing-xl);
+}
+
+.section-header h3 {
+    font-size: 1.5rem;
+    color: var(--gray-900);
+}
+
+.section-header p {
+    color: var(--gray-600);
+}
+
+/* Active Orders Grid */
+.orders-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: var(--spacing-lg);
+}
+
+.admin-order-card {
+    background: var(--white);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    padding: var(--spacing-lg);
+    border-top: 4px solid var(--gray-300);
+    display: flex;
+    flex-direction: column;
+}
+
+.admin-order-card.status-pending { border-top-color: var(--warning); }
+.admin-order-card.status-preparing { border-top-color: var(--primary); }
+.admin-order-card.status-ready { border-top-color: var(--success); }
+
+.admin-order-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--spacing-md);
+    padding-bottom: var(--spacing-sm);
+    border-bottom: 1px solid var(--gray-100);
+}
+
+.admin-order-table {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--gray-900);
+}
+
+.admin-order-time {
+    font-size: 0.875rem;
+    color: var(--gray-500);
+}
+
+.admin-order-items {
+    flex: 1;
+    margin-bottom: var(--spacing-lg);
+}
+
+.admin-order-item {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: var(--spacing-xs);
+    font-size: 0.9375rem;
+    color: var(--gray-700);
+}
+
+.admin-order-actions {
+    display: flex;
+    gap: var(--spacing-sm);
+}
+
+/* History Table */
+.history-table-container {
+    background: var(--white);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+}
+
+.history-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.history-table th, .history-table td {
+    padding: var(--spacing-md) var(--spacing-lg);
+    text-align: left;
+    border-bottom: 1px solid var(--gray-100);
+}
+
+.history-table th {
+    background: var(--gray-50);
+    font-weight: 600;
+    color: var(--gray-700);
+}
+
+.history-table td {
+    color: var(--gray-800);
+}
+
+.status-badge {
+    padding: 4px 12px;
+    border-radius: var(--radius-full);
+    font-size: 0.75rem;
+    font-weight: 600;
+    display: inline-block;
+}
+
+.status-badge.completed { background: #E8F5E9; color: var(--success); }
+.status-badge.cancelled { background: #FFEBEE; color: var(--error); }
+
+/* Modals Addition */
+.order-details-modal {
+    padding: var(--spacing-xl);
+}
+
+.modal-body {
+    padding-top: var(--spacing-md);
+}
+
+.customer-info {
+    display: flex;
+    gap: var(--spacing-xl);
+    background: var(--gray-50);
+    padding: var(--spacing-md);
+    border-radius: var(--radius-md);
+    margin-bottom: var(--spacing-lg);
+}
+
+.info-group {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+}
+
+.info-group i {
+    font-size: 1.5rem;
+    color: var(--primary);
+}
+
+.info-group strong {
+    display: block;
+    font-size: 0.8125rem;
+    color: var(--gray-500);
+}
+
+.info-group p {
+    font-weight: 600;
+    color: var(--gray-900);
+    margin: 0;
+}
+
+.timeline {
+    display: flex;
+    justify-content: space-between;
+    position: relative;
+    margin-bottom: var(--spacing-xl);
+    padding: 0 var(--spacing-lg);
+}
+
+.timeline::before {
+    content: '';
+    position: absolute;
+    top: 20px;
+    left: 40px;
+    right: 40px;
+    height: 2px;
+    background: var(--gray-200);
+    z-index: 1;
+}
+
+.timeline-step {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+    background: var(--white);
+    padding: 0 10px;
+}
+
+.step-icon {
+    width: 40px;
+    height: 40px;
+    background: var(--success);
+    color: var(--white);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto var(--spacing-sm);
+}
+
+.step-content strong {
+    display: block;
+    font-size: 0.875rem;
+    color: var(--gray-900);
+}
+
+.step-content span {
+    font-size: 0.8125rem;
+    color: var(--gray-500);
+}
+
+.order-items-list {
+    margin-bottom: var(--spacing-lg);
+}
+
+.order-items-list h4 {
+    margin-bottom: var(--spacing-sm);
+    color: var(--gray-700);
+    border-bottom: 1px solid var(--gray-200);
+    padding-bottom: var(--spacing-xs);
+}
+
+/* .order-items-list li {
+    display: flex;
+    justify-content: space-between;
+    padding: var(--spacing-xs) 0;
+    color: var(--gray-800);
+} */
+
+.order-total-display {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 1.25rem;
+    padding-top: var(--spacing-md);
+    border-top: 2px solid var(--gray-200);
+}
+
+/* to display time for each order */
+.order-items-list li {
+    display: flex;
+    flex-direction: column;
+    padding: var(--spacing-sm) 0;
+    color: var(--gray-800);
+    border-bottom: 1px dashed var(--gray-200);
+}
+
+.order-items-list li:last-child {
+    border-bottom: none;
+}
+
+.item-main-info {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    margin-bottom: 4px;
+    font-weight: 500;
+}
+
+.item-timing-info {
+    display: flex;
+    gap: var(--spacing-md);
+    font-size: 0.75rem;
+    color: var(--gray-500);
+}
+
+.item-timing-info span {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.item-timing-info i {
+    font-size: 0.7rem;
+}
+
+.item-timing-info .fa-check-circle {
+    color: var(--success);
+}
+
+/* ---------------------------------------------------------------------------------- */
+/* ========================================
+   CUSTOM SCROLLBAR STYLES
+   ======================================== */
+
+/* Target all scrollable elements */
+::-webkit-scrollbar {
+    width: 6px;  /* Make the vertical scrollbar thin */
+    height: 6px; /* Make the horizontal scrollbar thin */
+}
+
+/* The track (the background of the scrollbar) */
+::-webkit-scrollbar-track {
+    background: transparent; 
+    border-radius: var(--radius-full, 10px);
+}
+
+/* The draggable thumb */
+::-webkit-scrollbar-thumb {
+    background: var(--gray-300, #cbd5e1); 
+    border-radius: var(--radius-full, 10px);
+}
+
+/* The thumb on hover */
+::-webkit-scrollbar-thumb:hover {
+    background: var(--gray-400, #94a3b8); 
+}
+
+/* Specific fix for the Bill/Receipt Modal to ensure smooth scrolling */
+.receipt-items {
+    max-height: 40vh; /* Limits height so it scrolls instead of stretching the modal off-screen */
+    overflow-y: auto;
+    padding-right: 8px; /* Adds a little breathing room so the scrollbar doesn't touch the text */
+}
+
+/* Specific fix for the Admin Order Details Modal body */
+.modal-body {
+    max-height: 70vh;
+    overflow-y: auto;
+    padding-right: 8px;
+}
+
+/* Fix the modal content width and prevent horizontal scrollbars */
+.modal-content.order-details-modal {
+    max-width: 100%; /* Forces the modal to never be wider than the screen */
+    width: 600px; /* Or whatever your preferred default width is */
+    box-sizing: border-box; /* Ensures padding doesn't add to the total width */
+    overflow-x: hidden; /* Hides horizontal scrollbars */
+    margin: 0 auto; /* Centers the modal */
+}
+
+.modal-content.order-details-modal::-webkit-scrollbar {
+    display: none; /* WebKit (Chrome, Safari, Edge) */
+}
+
+/* Ensure child elements don't force the modal to stretch */
+.order-details-modal .customer-info,
+.order-details-modal .timeline,
+.order-details-modal .order-items-list {
+    max-width: 100%;
+    box-sizing: border-box;
+    overflow-wrap: break-word; /* Prevents long text/numbers from breaking the layout */
+}
