@@ -28,6 +28,7 @@ urlpatterns = [
     path('menu/', TemplateView.as_view(template_name='menu.html'), name='menu'),
     path('styles.css/', TemplateView.as_view(template_name='styles.css'), name='styles'),
     path('admin/', TemplateView.as_view(template_name='admin.html'), name='admin'),
-    path('login/', TemplateView.as_view(template_name='login.html'), name='login'),
+    path('login.html/', TemplateView.as_view(template_name='login.html'), name='login'),
     path('script.js/', TemplateView.as_view(template_name='script.js'), name='script'),
+    path('scan.html/', TemplateView.as_view(template_name='scan.html'), name='scan')
 ]

@@ -221,7 +221,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     sessionStorage.setItem('isLoggedIn', 'true');
                     sessionStorage.setItem('userEmail', email.value);
                     // Redirect to menu demo
-                    window.location.href = 'scan.html';
+                    window.location.href = '/scan.html/';
                 }, 1500);
             }
         });
