@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scan Table QR - QRMenu Pro</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+</head>
+<body class="scan-page">
+    <div class="scan-container">
+        <div class="scan-header">
+            <div class="logo">
+                <div class="logo-icon">
+                    <i class="fas fa-qrcode"></i>
+                    <i class="fas fa-utensils"></i>
+                </div>
+                <span class="logo-text">QRMenu Pro</span>
+            </div>
+            <h2>Scan Table QR Code</h2>
+            <p>Point your camera at the QR code on your table to view the menu and place your order.</p>
+        </div>
+
+        <div class="scanner-wrapper">
+            <div id="reader"></div>
+        </div>
+
+        <div class="scan-actions">
+            <button id="simulateScanBtn" class="btn btn-outline">
+                <i class="fas fa-magic"></i> Simulate Scan (Table 5)
+            </button>
+            <a href="login.html" class="btn btn-text text-muted">Cancel & Go Back</a>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

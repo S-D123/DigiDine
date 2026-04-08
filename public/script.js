@@ -219,7 +219,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     sessionStorage.setItem('isLoggedIn', 'true');
                     sessionStorage.setItem('userEmail', email.value);
                     // Redirect to menu demo
-                    window.location.href = 'menu.html';
+                    window.location.href = 'scan.html';
                 }, 1500);
             }
         });
@@ -1059,4 +1059,54 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initial renders
     renderLiveOrders();
     renderHistory();
+});
+
+// ========================================
+// QR SCANNER FUNCTIONALITY
+// ========================================
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Only run on the scan page
+    if (!document.querySelector('.scan-page')) return;
+
+    // Function to handle successful scans
+    function onScanSuccess(decodedText, decodedResult) {
+        // Stop the scanner
+        html5QrcodeScanner.clear();
+        
+        // For this demo, let's assume the QR code just contains the table number (e.g., "5" or "Table 5")
+        // In a real app, it might be a full URL like "https://yourrestaurant.com/menu?table=5"
+        let tableNum = decodedText.replace(/[^0-9]/g, ''); // Extract just the numbers
+        if (!tableNum) tableNum = "12"; // Fallback if no numbers found
+        
+        // Save the table number to session storage so the menu page knows where they are sitting
+        sessionStorage.setItem('currentTable', tableNum);
+        
+        // Redirect to the menu
+        window.location.href = 'menu.html';
+    }
+
+    function onScanFailure(error) {
+        // Handle scan failure silently. 
+        // The library checks frames multiple times a second, so errors are normal while focusing.
+    }
+
+    // Initialize the scanner
+    const html5QrcodeScanner = new Html5QrcodeScanner(
+        "reader",
+        { fps: 10, qrbox: {width: 250, height: 250} },
+        /* verbose= */ false
+    );
+    
+    // Start scanning
+    html5QrcodeScanner.render(onScanSuccess, onScanFailure);
+
+    // --- Simulate Scan Button (For Desktop Testing) ---
+    const simulateBtn = document.getElementById('simulateScanBtn');
+    if (simulateBtn) {
+        simulateBtn.addEventListener('click', () => {
+            sessionStorage.setItem('currentTable', '5');
+            window.location.href = 'menu.html';
+        });
+    }
 });
