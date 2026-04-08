@@ -13,6 +13,10 @@ This repository contains a static `public/` folder with a landing page (`index.h
   - script.js         # Front-end JS
   - styles.css        # Styles
 - package.json        # Project metadata (contains Next scripts & deps)
+- qrmenu_backend/
+  - api/              # Backend API logic
+  - manage.py         # Django project entry point
+- package.json        # Project metadata (contains scripts & deps)
 
 ## Quick: serve the static `public` folder (PowerShell)
 
@@ -29,6 +33,37 @@ Start-Process -FilePath python -ArgumentList '-m','http.server','3000','--direct
 # stop background python server:
 Get-Process -Name python | Stop-Process
 ```
+
+## Run the backend server
+
+To run the backend server, follow these steps:
+
+1. **Create a virtual environment**:
+   ```powershell
+   python -m venv venv
+   ```
+
+2. **Activate virtual environment**:
+   ```powershell
+  .\venv\Scripts\activate  
+  For mac/Linux
+  source venv/bin/activate 
+  ```
+
+3. **Install dependencies:**:
+    ```powershell
+   pip install -r requirements.txt
+   ```
+
+4. **Move to the backend folder:**:
+    ```powershell
+    cd qrmenu_backend
+     ```
+
+5. **Run the development server:**:
+    ```powershell
+    python manage.py runserver
+    ```
 
 2) Node (npx http-server or serve)
 

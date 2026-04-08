@@ -12,4 +12,7 @@ urlpatterns = [
 
     # order history
     path('orders/history/', views.get_order_history, name='get_order_history'),
+
+    # for payments
+    path('payments/create/', views.create_payment, name='create_payment'),
 ]

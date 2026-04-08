@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-2*_obna57-o7m79!s_-6kdd*p7enh@xq1@-xue)fi(us0@1_0t
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -152,4 +152,11 @@ STATIC_URL = '/static/'
 # The folder(s) where Django should look for CSS, JS, and Images
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'public') # Assuming your css/js are in the same 'public' folder
+]
+
+# Tell Django to trust secure requests coming from ngrok domains
+CSRF_TRUSTED_ORIGINS = [
+    'https://*.ngrok-free.app',
+    'https://*.ngrok.io',
+    'https://*.ngrok.app',
 ]

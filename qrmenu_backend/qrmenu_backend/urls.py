@@ -17,6 +17,7 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include  # Make sure 'include' is imported here!
 from api import views as api_views # Import your views here
+from django.views.generic import TemplateView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -24,4 +25,9 @@ urlpatterns = [
 
     # Add this line to serve the index.html on the base domain!
     path('', api_views.serve_index, name='index'),
+    path('menu/', TemplateView.as_view(template_name='menu.html'), name='menu'),
+    path('styles.css/', TemplateView.as_view(template_name='styles.css'), name='styles'),
+    path('admin/', TemplateView.as_view(template_name='admin.html'), name='admin'),
+    path('login/', TemplateView.as_view(template_name='login.html'), name='login'),
+    path('script.js/', TemplateView.as_view(template_name='script.js'), name='script'),
 ]

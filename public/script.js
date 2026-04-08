@@ -12,6 +12,8 @@ function formatCurrency(amount) {
     return '$' + parseFloat(amount).toFixed(2);
 }
 
+const API_BASE_URL = window.location.origin + '/api';
+
 // Get current date/time formatted
 function getCurrentDateTime() {
     const now = new Date();
@@ -400,6 +402,116 @@ document.addEventListener('DOMContentLoaded', function() {
     const backToTop = document.getElementById('backToTop');
     const orderStatus = document.getElementById('orderStatus');
 
+    // Django API Configuration
+    const RESTAURANT_ID = 'urban-bistro'; 
+    // const API_BASE_URL = 'http://localhost:8000/api';
+
+    // --- Dynamic Data Fetching ---
+    async function fetchMenuData() {
+        try {
+            // 1. Fetch Restaurant Info
+            const resResponse = await fetch(`${API_BASE_URL}/restaurants/${RESTAURANT_ID}/`);
+            if (resResponse.ok) {
+                const restaurantData = await resResponse.json();
+                document.querySelector('.restaurant-info h1').textContent = restaurantData.name;
+                
+                // 3. "Request Bill" details fetched from database
+                // Update Restaurant Details in the Receipt Modal
+                const receiptName = document.getElementById('receiptRestaurantName');
+                const receiptAddress = document.getElementById('receiptRestaurantAddress');
+                const receiptPhone = document.getElementById('receiptRestaurantPhone');
+                
+                if (receiptName) receiptName.textContent = restaurantData.name;
+                if (receiptAddress) receiptAddress.textContent = restaurantData.address || 'Address not available';
+                if (receiptPhone) receiptPhone.textContent = `Tel: ${restaurantData.phone || 'N/A'}`;
+            }
+
+                
+            // 2. Fetch Menu Items
+            const menuResponse = await fetch(`${API_BASE_URL}/restaurants/${RESTAURANT_ID}/menu-items/`);
+            if (menuResponse.ok) {
+                const menuData = await menuResponse.json();
+                renderMenuGrid(menuData.items);
+            } else {
+                throw new Error("Failed to load items");
+            }
+        } catch (error) {
+            console.error("Error fetching data from Django:", error);
+            if (menuGrid) {
+                menuGrid.innerHTML = '<p style="color:red;">Error loading menu. Is the Django server running?</p>';
+            }
+        }
+    }
+
+    // --- Dynamic Rendering ---
+    function renderMenuGrid(items) {
+        menuGrid.innerHTML = ''; // Clear loading state
+
+        items.forEach(item => {
+            const card = document.createElement('div');
+            card.className = 'menu-card';
+            card.dataset.category = item.category || 'main';
+            card.dataset.filter = item.filters ? item.filters.join(' ') : '';
+            card.dataset.id = item.id;
+
+            // Determine badge based on filters
+            let badgeHtml = '';
+            if (item.filters && item.filters.includes('veg')) badgeHtml += '<span class="food-badge veg"></span>';
+            if (item.filters && item.filters.includes('non-veg')) badgeHtml += '<span class="food-badge non-veg"></span>';
+            if (item.filters && item.filters.includes('vegan')) badgeHtml += '<span class="food-badge vegan"></span>';
+            
+            let spicyHtml = (item.filters && item.filters.includes('spicy')) ? '<span class="spicy-badge"><i class="fas fa-pepper-hot"></i></span>' : '';
+
+            card.innerHTML = `
+                <div class="card-image">
+                    <div class="image-placeholder">
+                        <i class="fas ${item.icon || 'fa-utensils'}"></i>
+                    </div>
+                    ${badgeHtml}
+                    ${spicyHtml}
+                </div>
+                <div class="card-content">
+                    <h3>${item.name}</h3>
+                    <p>${item.description || ''}</p>
+                    <div class="card-footer">
+                        <span class="price">$${parseFloat(item.price).toFixed(2)}</span>
+                        <button class="add-btn" data-id="${item.id}" data-name="${item.name}" data-price="${item.price}">
+                            <span class="add-text"><i class="fas fa-plus"></i> Add</span>
+                            <span class="added-text"><i class="fas fa-check"></i> Added</span>
+                        </button>
+                    </div>
+                </div>
+            `;
+            menuGrid.appendChild(card);
+        });
+
+        attachAddButtonListeners();
+        filterMenu(); 
+    }
+
+    // Attach Add Button Listeners (For Dynamic Content)
+    function attachAddButtonListeners() {
+        document.querySelectorAll('.add-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const id = this.dataset.id;
+                const name = this.dataset.name;
+                const price = parseFloat(this.dataset.price);
+
+                const existingItem = cart.find(item => item.id === id);
+                
+                if (existingItem) {
+                    existingItem.qty++;
+                } else {
+                    cart.push({ id, name, price, qty: 1 });
+                }
+
+                this.classList.add('added');
+                setTimeout(() => this.classList.remove('added'), 1000);
+                updateCart();
+            });
+        });
+    }
+
     // Initialize
     function init() {
         updateTableDisplay();
@@ -409,6 +521,9 @@ document.addEventListener('DOMContentLoaded', function() {
         if (orderSent) {
             requestBillBtn.style.display = 'block';
         }
+        
+        // Trigger fetch on load
+        fetchMenuData(); 
     }
 
     // Update Table Display
@@ -440,7 +555,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    
     // Close modals
     document.querySelectorAll('.modal-close, #closeBill, #cancelInstructions').forEach(btn => {
         btn.addEventListener('click', function() {
@@ -460,7 +574,6 @@ document.addEventListener('DOMContentLoaded', function() {
     // Search Functionality
     if (menuSearch) {
         menuSearch.addEventListener('input', filterMenu);
-        
         clearSearch?.addEventListener('click', () => {
             menuSearch.value = '';
             filterMenu();
@@ -477,7 +590,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 document.querySelector('.filter-tag[data-filter="all"]').classList.remove('active');
                 this.classList.toggle('active');
                 
-                // Check if no filters active, activate "All"
                 const activeFilters = document.querySelectorAll('.filter-tag.active:not([data-filter="all"])');
                 if (activeFilters.length === 0) {
                     document.querySelector('.filter-tag[data-filter="all"]').classList.add('active');
@@ -508,18 +620,14 @@ document.addEventListener('DOMContentLoaded', function() {
         let visibleCount = 0;
 
         cards.forEach(card => {
-            const name = card.querySelector('h3').textContent.toLowerCase();
-            const description = card.querySelector('p').textContent.toLowerCase();
+            const name = card.querySelector('h3')?.textContent.toLowerCase() || '';
+            const description = card.querySelector('p')?.textContent.toLowerCase() || '';
             const category = card.dataset.category;
             const filters = card.dataset.filter?.split(' ') || [];
 
-            // Check search
             const matchesSearch = name.includes(searchTerm) || description.includes(searchTerm);
-            
-            // Check category
             const matchesCategory = activeCategory === 'all' || category === activeCategory;
             
-            // Check filters
             let matchesFilters = true;
             if (activeFilters.length > 0) {
                 matchesFilters = activeFilters.some(f => filters.includes(f));
@@ -531,32 +639,8 @@ document.addEventListener('DOMContentLoaded', function() {
             if (shouldShow) visibleCount++;
         });
 
-        // Show/hide empty state
         emptyState?.classList.toggle('visible', visibleCount === 0);
     }
-
-    // Add to Cart
-    document.querySelectorAll('.add-btn').forEach(btn => {
-        btn.addEventListener('click', function() {
-            const id = this.dataset.id;
-            const name = this.dataset.name;
-            const price = parseFloat(this.dataset.price);
-
-            const existingItem = cart.find(item => item.id === id);
-            
-            if (existingItem) {
-                existingItem.qty++;
-            } else {
-                cart.push({ id, name, price, qty: 1 });
-            }
-
-            // Visual feedback
-            this.classList.add('added');
-            setTimeout(() => this.classList.remove('added'), 1000);
-
-            updateCart();
-        });
-    });
 
     // Update Cart
     function updateCart() {
@@ -567,22 +651,18 @@ document.addEventListener('DOMContentLoaded', function() {
         const tax = subtotal * 0.1;
         const total = subtotal + tax;
 
-        // Update counts
         if (cartCount) cartCount.textContent = totalItems;
         if (itemCount) itemCount.textContent = `${totalItems} item${totalItems !== 1 ? 's' : ''}`;
         
-        // Update mobile cart button
         if (mobileCartBtn) {
             mobileCartBtn.querySelector('.cart-count').textContent = totalItems;
             mobileCartBtn.querySelector('.cart-total').textContent = formatCurrency(total);
         }
 
-        // Update totals
         if (subtotalEl) subtotalEl.textContent = formatCurrency(subtotal);
         if (taxEl) taxEl.textContent = formatCurrency(tax);
         if (totalEl) totalEl.textContent = formatCurrency(total);
 
-        // Update order items
         if (orderItems) {
             if (cart.length === 0) {
                 orderItems.innerHTML = `
@@ -620,7 +700,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     </div>
                 `).join('');
 
-                // Add event listeners to quantity buttons
                 orderItems.querySelectorAll('.qty-btn.minus').forEach(btn => {
                     btn.addEventListener('click', () => updateItemQty(btn.dataset.id, -1));
                 });
@@ -639,7 +718,6 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
 
-        // Enable/disable send button
         if (sendToKitchenBtn) {
             sendToKitchenBtn.disabled = cart.length === 0;
         }
@@ -689,33 +767,56 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // Send to Kitchen
-    sendToKitchenBtn?.addEventListener('click', function() {
+    sendToKitchenBtn?.addEventListener('click', async function() {
         if (cart.length === 0) return;
 
         this.disabled = true;
         this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
 
-        setTimeout(() => {
-            // Show notification
-            kitchenNotification.classList.add('show');
-            
-            // Update status
-            orderSent = true;
-            sessionStorage.setItem('orderSent', 'true');
-            updateOrderStatus();
-            
-            // Show request bill button
-            requestBillBtn.style.display = 'block';
-            
-            // Reset button
-            this.innerHTML = '<i class="fas fa-paper-plane"></i> Send to Kitchen';
+        // 1. Prepare the exact data the Admin page needs
+        const orderPayload = {
+            restaurant_id: RESTAURANT_ID,
+            table: currentTable,
+            status: 'pending', // pending, preparing, ready
+            timePlaced: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
+            items: cart,
+            instructions: specialInstructions
+        };
+
+        try {
+            // 2. Send the order to your Django Backend
+            const response = await fetch(`${API_BASE_URL}/orders/place/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(orderPayload)
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                // Success! 
+                kitchenNotification.classList.add('show');
+                orderSent = true;
+                sessionStorage.setItem('orderSent', 'true');
+                updateOrderStatus();
+                
+                requestBillBtn.style.display = 'block';
+                this.innerHTML = '<i class="fas fa-check"></i> Sent to Kitchen';
+                
+                setTimeout(() => {
+                    kitchenNotification.classList.remove('show');
+                }, 4000);
+            } else {
+                throw new Error(data.error || "Failed to send order");
+            }
+        } catch (error) {
+            console.error("Order Error:", error);
+            alert("Could not send order to the kitchen. Please ask a waiter.");
+            this.innerHTML = '<i class="fas fa-paper-plane"></i> Try Again';
             this.disabled = false;
-            
-            // Hide notification after delay
-            setTimeout(() => {
-                kitchenNotification.classList.remove('show');
-            }, 4000);
-        }, 1500);
+        }
     });
 
     // Update Order Status
@@ -734,7 +835,6 @@ document.addEventListener('DOMContentLoaded', function() {
         const tax = subtotal * 0.1;
         const total = subtotal + tax;
 
-        // Populate receipt
         document.getElementById('receiptDate').textContent = getCurrentDateTime();
         document.getElementById('receiptTable').textContent = currentTable;
         
@@ -755,14 +855,87 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // Print Bill
-    document.getElementById('printBill')?.addEventListener('click', () => {
-        window.print();
-    });
+    // document.getElementById('printBill')?.addEventListener('click', () => {
+    //     window.print();
+    // });
 
-    // Close Bill
-    document.getElementById('closeBill')?.addEventListener('click', () => {
-        billModal.classList.remove('active');
-    });
+    // payment processing
+    const printBill = document.getElementById('printBill');
+        
+    if (printBill) {
+        printBill.addEventListener('click', async function() {
+            // Change button text to show loading state
+            const originalText = this.innerHTML;
+            this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+            this.disabled = true;
+
+            // 1. Calculate your final total (replace with your actual cart total variable)
+            const finalAmount = 100; // Ensure this is the final numerical value
+
+            try {
+                // 2. Ask Django to create a secure Razorpay Order
+                const response = await fetch(`${API_BASE_URL}/payments/create/`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ amount: finalAmount })
+                });
+
+                // Catch Django 500 Server Errors before they break response.json()
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error("Backend failed:", errorText);
+                    throw new Error(`Server returned ${response.status}`);
+                }
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    // 3. Configure the Razorpay Checkout Modal
+                    const options = {
+                        "key": "rzp_test_SRN9gxagO0uE67", // Enter your Key ID here too!
+                        "amount": data.amount, 
+                        "currency": data.currency,
+                        "name": "DigiDine Restaurant",
+                        "description": `Table ${currentTable} Bill`,
+                        "order_id": data.razorpay_order_id, // The secure ID from Django
+                        "handler": function (response) {
+                            // This function runs when the payment is SUCCESSFUL
+                            alert(`Payment Successful! Payment ID: ${response.razorpay_payment_id}`);
+                            
+                            // Here you can call another Django endpoint to mark the Firebase order as "Paid"
+                            // window.location.href = 'success.html'; 
+                        },
+                        "prefill": {
+                            "name": "Customer",
+                            "contact": "9999999999" // Optional: Fill if you collected it
+                        },
+                        "theme": {
+                            "color": "#eab308" // Match your DigiDine theme color
+                        }
+                    };
+
+                    // 4. Open the modal
+                    const rzp = new Razorpay(options);
+                    
+                    // Handle if user closes the popup without paying
+                    rzp.on('payment.failed', function (response){
+                        alert("Payment failed or cancelled. Please try again.");
+                    });
+                    
+                    rzp.open();
+                } else {
+                    alert("Failed to initiate payment: " + data.error);
+                }
+            } catch (error) {
+                console.error("Payment Error:", error);
+                alert("Could not connect to payment gateway.");
+            } finally {
+                // Restore the button
+                this.innerHTML = originalText;
+                this.disabled = false;
+            }
+        });
+    }
 
     // Mobile Cart Toggle
     mobileCartBtn?.addEventListener('click', () => {
@@ -786,7 +959,7 @@ document.addEventListener('DOMContentLoaded', function() {
         window.scrollTo({ top: 0, behavior: 'smooth' });
     });
 
-    // Initialize menu page
+    // Start Menu Page
     init();
 });
 
@@ -842,12 +1015,15 @@ document.addEventListener('DOMContentLoaded', function() {
             this.classList.add('active');
             const tabId = this.getAttribute('data-tab');
             document.getElementById(tabId).classList.add('active');
+
+            // If clicked on "history", fetch the history
+            if (tabId.toLowerCase().includes('history')) {
+                fetchOrderHistory();
+            }
         });
     });
 
     // --- Mock Data Initialization ---
-    // If a user just ordered from menu.html, it will be in sessionStorage. 
-    // We check `orderSent` to create a live order dynamically.
     let liveOrders = [];
     const hasPendingOrder = sessionStorage.getItem('orderSent') === 'true';
     const currentTable = sessionStorage.getItem('currentTable') || '12';
@@ -862,7 +1038,6 @@ document.addEventListener('DOMContentLoaded', function() {
             items: cartData
         });
     } else {
-        // Fallback mock live order if none in session
         liveOrders.push({
             id: 'ORD-9021',
             table: '5',
@@ -908,55 +1083,121 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     ];
 
-    
-
-    // --- Render Live Orders ---
+    // ---------------------------------------------------------------------------
+    // --- Dynamic Live Orders Fetching ---
     const activeOrdersGrid = document.getElementById('activeOrdersGrid');
+    // const API_BASE_URL = 'http://localhost:8000/api'; // Make sure this is here
 
-    function renderLiveOrders() {
+    // 1. Fetch from Django
+    async function fetchLiveOrders() {
         if (!activeOrdersGrid) return;
-        activeOrdersGrid.innerHTML = '';
-
-        if (liveOrders.length === 0) {
-            activeOrdersGrid.innerHTML = `<p style="color: var(--gray-500);">No active orders at the moment.</p>`;
-            return;
-        }
-
-        liveOrders.forEach(order => {
-            const card = document.createElement('div');
-            card.className = `admin-order-card status-${order.status}`;
-            
-            // Format items list
-            const itemsHtml = order.items.map(item => `
-                <div class="admin-order-item">
-                    <span>${item.qty}x ${item.name}</span>
-                </div>
-            `).join('');
-
-            // Buttons based on status
-            let buttonsHtml = '';
-            if (order.status === 'pending') {
-                buttonsHtml = `<button class="btn btn-primary btn-block" onclick="updateOrderStatus('${order.id}', 'preparing')">Accept & Prepare</button>`;
-            } else if (order.status === 'preparing') {
-                buttonsHtml = `<button class="btn btn-success btn-block" style="background:var(--success); color:white;" onclick="updateOrderStatus('${order.id}', 'ready')">Mark as Ready</button>`;
-            } else if (order.status === 'ready') {
-                buttonsHtml = `<button class="btn btn-outline btn-block" onclick="completeOrder('${order.id}')">Served to Table</button>`;
+        
+        try {
+            const response = await fetch(`${API_BASE_URL}/orders/live/`, { cache: 'no-store' });
+            if (response.ok) {
+                const data = await response.json();
+                renderLiveOrders(data.orders || []);
             }
+        } catch (error) {
+            console.error("Error fetching live orders:", error);
+        }
+    }
 
-            card.innerHTML = `
-                <div class="admin-order-header">
-                    <span class="admin-order-table">Table ${order.table}</span>
-                    <span class="admin-order-time">${order.timePlaced}</span>
-                </div>
-                <div class="admin-order-items">
-                    ${itemsHtml}
-                </div>
-                <div class="admin-order-actions">
-                    ${buttonsHtml}
-                </div>
-            `;
-            activeOrdersGrid.appendChild(card);
-        });
+    // 2. Render to Screen
+    // function renderLiveOrders(liveOrders) {
+    //     if (!activeOrdersGrid) return;
+    //     activeOrdersGrid.innerHTML = '';
+
+    //     if (liveOrders.length === 0) {
+    //         activeOrdersGrid.innerHTML = `<p style="color: var(--gray-500);">No active orders at the moment.</p>`;
+    //         return;
+    //     }
+
+    //     liveOrders.forEach(order => {
+    //         const card = document.createElement('div');
+    //         card.className = `admin-order-card status-${order.status}`;
+            
+    //         const items = order.items || [];
+    //         const itemsHtml = items.map(item => `
+    //             <div class="admin-order-item">
+    //                 <span>${item.qty}x ${item.name}</span>
+    //             </div>
+    //         `).join('');
+
+    //         // CHANGED: Removed inline onclicks, replaced with data attributes and a standard class
+    //         let buttonsHtml = '';
+    //         if (order.status === 'pending') {
+    //             buttonsHtml = `<button class="btn btn-primary btn-block status-btn" data-id="${order.id}" data-status="preparing">Accept & Prepare</button>`;
+    //         } else if (order.status === 'preparing') {
+    //             buttonsHtml = `<button class="btn btn-success btn-block status-btn" style="background:var(--success); color:white;" data-id="${order.id}" data-status="ready">Mark as Ready</button>`;
+    //         } else if (order.status === 'ready') {
+    //             buttonsHtml = `<button class="btn btn-outline btn-block status-btn" data-id="${order.id}" data-status="completed">Served to Table</button>`;
+    //         }
+
+    //         card.innerHTML = `
+    //             <div class="admin-order-header">
+    //                 <span class="admin-order-table">Table ${order.table}</span>
+    //                 <span class="admin-order-time">${order.timePlaced || 'Just now'}</span>
+    //             </div>
+    //             <div class="admin-order-items">
+    //                 ${itemsHtml}
+    //             </div>
+    //             <div class="admin-order-actions">
+    //                 ${buttonsHtml}
+    //             </div>
+    //         `;
+    //         activeOrdersGrid.appendChild(card);
+    //     });
+
+    //     // CHANGED: Safely attach event listeners to all generated buttons
+    //     document.querySelectorAll('.status-btn').forEach(btn => {
+    //         btn.addEventListener('click', function() {
+    //             const orderId = this.dataset.id;
+    //             const newStatus = this.dataset.status;
+                
+    //             // Show loading state on the button immediately
+    //             this.disabled = true;
+    //             this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Updating...';
+                
+    //             updateOrderStatusApi(orderId, newStatus);
+    //         });
+    //     });
+    // }
+
+    // 3. Update Status back to Django (RENAMED to avoid conflicts)
+    async function updateOrderStatusApi(orderId, newStatus) {
+        try {
+            const response = await fetch(`${API_BASE_URL}/orders/${orderId}/status/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ status: newStatus })
+            });
+
+            if (response.ok) {
+                // Fetch immediately to remove the old card and show the updated one
+                fetchLiveOrders();
+            } else {
+                const errorData = await response.json();
+                console.error("Backend Error:", errorData);
+                alert("Failed to update status: " + (errorData.error || "Unknown Error"));
+                fetchLiveOrders(); // Refresh to reset the button state
+            }
+        } catch (error) {
+            console.error("Network Error:", error);
+            alert("Could not reach the server. Is Django running?");
+            fetchLiveOrders(); // Refresh to reset the button state
+        }
+    }
+
+    // --- Initialization ---
+    if (activeOrdersGrid) {
+        // Fetch orders immediately on load
+        fetchLiveOrders();
+        
+        // Auto-refresh the orders every 3 seconds (Polling mechanism)
+        setInterval(fetchLiveOrders, 3000); 
     }
 
     // Expose functions to window so inline onclick works
@@ -971,30 +1212,102 @@ document.addEventListener('DOMContentLoaded', function() {
     window.completeOrder = function(orderId) {
         const orderIndex = liveOrders.findIndex(o => o.id === orderId);
         if (orderIndex > -1) {
-            // Remove from live, we could push to history in a real app
             liveOrders.splice(orderIndex, 1);
-            // Reset customer session if it matches their order
             sessionStorage.removeItem('orderSent');
             sessionStorage.removeItem('cart');
             renderLiveOrders();
         }
     };
 
-    // --- Render History Table ---
-    const historyTableBody = document.getElementById('historyTableBody');
+    // --- Order Details Modal ---
+    window.openOrderModal = function(historyIndex) {
+        // Because we reversed the array for the table, we must reverse the index back
+        const reversedHistory = [...dynamicOrderHistory].reverse();
+        const order = reversedHistory[historyIndex];
+        
+        if (!order) return;
+
+        // Re-calculate total
+        const items = order.items || [];
+        const subtotal = items.reduce((sum, item) => sum + (parseFloat(item.price || 0) * parseInt(item.qty || 1)), 0);
+        const totalWithTax = subtotal + (subtotal * 0.1);
+        const shortId = order.id.substring(1, 8).toUpperCase();
+
+        // Populate Modal Data
+        document.getElementById('modalOrderId').textContent = `(#${shortId})`;
+        document.getElementById('modalPhone').textContent = order.phone || 'Walk-in Customer'; 
+        document.getElementById('modalTable').textContent = order.table;
+        document.getElementById('modalTimeOrdered').textContent = order.timePlaced || 'N/A';
+        document.getElementById('modalTimeDelivered').textContent = order.timeDelivered || 'Completed';
+        document.getElementById('modalTotalAmount').textContent = formatCurrency(totalWithTax);
+
+        // Populate Items list
+        const itemsList = document.getElementById('modalItemsList');
+        itemsList.innerHTML = items.map(item => `
+            <li class="modal-item-row">
+                <div class="item-main-info">
+                    <span class="item-name">${item.qty}x ${item.name}</span>
+                    <span class="item-price">${formatCurrency((item.price || 0) * item.qty)}</span>
+                </div>
+                <div class="item-timing-info">
+                    <span><i class="fas fa-clock"></i> Ordered: ${order.timePlaced || 'N/A'}</span>
+                    <span><i class="fas fa-check-circle"></i> Served: Completed</span>
+                </div>
+            </li>
+        `).join('');
+
+        const orderDetailsModal = document.getElementById('orderDetailsModal');
+        if (orderDetailsModal) orderDetailsModal.classList.add('active');
+    };
     
+    // --- Dynamic Order History Fetching ---
+    const historyTableBody = document.getElementById('historyTableBody');
+    let dynamicOrderHistory = []; // Store globally for the modal
+
+    async function fetchOrderHistory() {
+        if (!historyTableBody) return;
+        
+        try {
+            const response = await fetch(`${API_BASE_URL}/orders/history/`, { cache: 'no-store' });
+            if (response.ok) {
+                const data = await response.json();
+                dynamicOrderHistory = data.orders || [];
+                renderHistory();
+            }
+        } catch (error) {
+            console.error("Error fetching order history:", error);
+        }
+    }
+
     function renderHistory() {
         if (!historyTableBody) return;
         historyTableBody.innerHTML = '';
 
-        orderHistory.forEach((order, index) => {
+        if (dynamicOrderHistory.length === 0) {
+            historyTableBody.innerHTML = `<tr><td colspan="6" style="text-align:center; color: var(--gray-500); padding: 20px;">No completed orders yet.</td></tr>`;
+            return;
+        }
+
+        // Reverse the array so the newest completed orders show up at the top
+        const reversedHistory = [...dynamicOrderHistory].reverse();
+
+        reversedHistory.forEach((order, index) => {
+            // Calculate total dynamically based on items and a 10% tax
+            const items = order.items || [];
+            const subtotal = items.reduce((sum, item) => sum + (parseFloat(item.price || 0) * parseInt(item.qty || 1)), 0);
+            const totalWithTax = subtotal + (subtotal * 0.1);
+            const formattedTotal = formatCurrency(totalWithTax);
+
+            // Shorten the Firebase ID for a cleaner display
+            const shortId = order.id.substring(1, 8).toUpperCase();
+
             const tr = document.createElement('tr');
             tr.innerHTML = `
-                <td><strong>${order.id}</strong></td>
+                <td><strong>#${shortId}</strong></td>
                 <td>Table ${order.table}</td>
-                <td>${order.date}</td>
-                <td><strong>${order.total}</strong></td>
-                <td><span class="status-badge completed">${order.status}</span></td>
+                <td>Today, ${order.timePlaced || 'N/A'}</td>
+                <td><strong>${formattedTotal}</strong></td>
+                <td><span class="status-badge completed">Completed</span></td>
                 <td>
                     <button class="btn btn-outline" style="padding: 0.25rem 0.75rem; font-size: 0.8125rem;" onclick="openOrderModal(${index})">
                         View Details
@@ -1005,56 +1318,93 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // --- Order Details Modal (Updated list generation) ---
-    const orderDetailsModal = document.getElementById('orderDetailsModal');
+    // --- Order Details Modal ---
+    function renderLiveOrders(liveOrders) {
+        if (!activeOrdersGrid) return;
+        activeOrdersGrid.innerHTML = '';
 
-    window.openOrderModal = function(historyIndex) {
-        const order = orderHistory[historyIndex];
-        if (!order) return;
+        if (liveOrders.length === 0) {
+            activeOrdersGrid.innerHTML = `<p style="color: var(--gray-500);">No active orders at the moment.</p>`;
+            return;
+        }
 
-        // Populate Modal Data
-        document.getElementById('modalOrderId').textContent = `(${order.id})`;
-        document.getElementById('modalPhone').textContent = order.phone;
-        document.getElementById('modalTable').textContent = order.table;
-        document.getElementById('modalTimeOrdered').textContent = order.timeOrdered;
-        document.getElementById('modalTimeDelivered').textContent = order.timeDelivered;
-        document.getElementById('modalTotalAmount').textContent = order.total;
-
-        // Populate Items with individual times
-        const itemsList = document.getElementById('modalItemsList');
-        itemsList.innerHTML = order.items.map(item => `
-            <li class="modal-item-row">
-                <div class="item-main-info">
-                    <span class="item-name">${item.qty}x ${item.name}</span>
-                    <span class="item-price">$${(item.price * item.qty).toFixed(2)}</span>
+        liveOrders.forEach(order => {
+            const card = document.createElement('div');
+            card.className = `admin-order-card status-${order.status}`;
+            
+            const items = order.items || [];
+            const itemsHtml = items.map(item => `
+                <div class="admin-order-item">
+                    <span>${item.qty}x ${item.name}</span>
                 </div>
-                <div class="item-timing-info">
-                    <span><i class="fas fa-clock"></i> Ordered: ${item.timeOrdered || order.timeOrdered}</span>
-                    <span><i class="fas fa-check-circle"></i> Served: ${item.timeDelivered || 'Pending'}</span>
+            `).join('');
+
+            let buttonsHtml = '';
+            if (order.status === 'pending') {
+                // Wrap buttons in a flex container to control their widths side-by-side
+                buttonsHtml = `
+                    <div style="display: flex; gap: 8px; width: 100%;">
+                        <button class="btn btn-primary status-btn" style="flex: 2;" data-id="${order.id}" data-status="preparing">Accept & Prepare</button>
+                        <button class="btn cancel-btn status-btn" style="flex: 1;" data-id="${order.id}" data-status="cancelled">Cancel</button>
+                    </div>
+                `;
+            } else if (order.status === 'preparing') {
+                buttonsHtml = `<button class="btn btn-success btn-block status-btn" style="background:var(--success); color:white;" data-id="${order.id}" data-status="ready">Mark as Ready</button>`;
+            } else if (order.status === 'ready') {
+                buttonsHtml = `<button class="btn btn-outline btn-block status-btn" data-id="${order.id}" data-status="completed">Served to Table</button>`;
+            }
+
+            card.innerHTML = `
+                <div class="admin-order-header">
+                    <span class="admin-order-table">Table ${order.table}</span>
+                    <span class="admin-order-time">${order.timePlaced || 'Just now'}</span>
                 </div>
-            </li>
-        `).join('');
+                <div class="admin-order-items">
+                    ${itemsHtml}
+                </div>
+                <div class="admin-order-actions">
+                    ${buttonsHtml}
+                </div>
+            `;
+            activeOrdersGrid.appendChild(card);
+        });
 
-        orderDetailsModal.classList.add('active');
-    };
-
-    // Close modal handles already exist in the global script.js (looking for `.modal-close` and clicking outside)
-        // Close modals
-        document.querySelectorAll('.modal-close, #closeBill, #cancelInstructions').forEach(btn => {
+        // Safely attach event listeners to all generated buttons
+        document.querySelectorAll('.status-btn').forEach(btn => {
             btn.addEventListener('click', function() {
-                this.closest('.modal').classList.remove('active');
-            });
-        });
-
-        // Click outside modal to close
-        document.querySelectorAll('.modal').forEach(modal => {
-            modal.addEventListener('click', function(e) {
-                if (e.target === this) {
-                    this.classList.remove('active');
+                const orderId = this.dataset.id;
+                const newStatus = this.dataset.status;
+                
+                // Show loading state on the button immediately
+                this.disabled = true;
+                
+                // Keep the loading spinner compact for the smaller cancel button
+                if (newStatus === 'cancelled') {
+                    this.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+                } else {
+                    this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Updating...';
                 }
+                
+                updateOrderStatusApi(orderId, newStatus);
             });
         });
+    }
 
+
+    // Close modals
+    document.querySelectorAll('.modal-close, #closeBill, #cancelInstructions').forEach(btn => {
+        btn.addEventListener('click', function() {
+            this.closest('.modal').classList.remove('active');
+        });
+    });
+
+    document.querySelectorAll('.modal').forEach(modal => {
+        modal.addEventListener('click', function(e) {
+            if (e.target === this) {
+                this.classList.remove('active');
+            }
+        });
+    });
 
     // Initial renders
     renderLiveOrders();
@@ -1069,42 +1419,97 @@ document.addEventListener('DOMContentLoaded', function() {
     // Only run on the scan page
     if (!document.querySelector('.scan-page')) return;
 
-    // Function to handle successful scans
-    function onScanSuccess(decodedText, decodedResult) {
-        // Stop the scanner
-        html5QrcodeScanner.clear();
+    let lastResult = ""; 
+    const readerDiv = document.getElementById('reader');
+
+    function processScan(decodedText) {
+        if (decodedText === lastResult) return; 
         
-        // For this demo, let's assume the QR code just contains the table number (e.g., "5" or "Table 5")
-        // In a real app, it might be a full URL like "https://yourrestaurant.com/menu?table=5"
-        let tableNum = decodedText.replace(/[^0-9]/g, ''); // Extract just the numbers
-        if (!tableNum) tableNum = "12"; // Fallback if no numbers found
+        lastResult = decodedText;
+        console.log(`Scan result: ${decodedText}`);
+
+        let tableNum = "12"; // Default fallback
+        let restaurantId = "urban-bistro"; // Default fallback
         
-        // Save the table number to session storage so the menu page knows where they are sitting
+        // Parse the QR code text. Expected format: "digidine urban-bistro table-4"
+        const parts = decodedText.toLowerCase().split(' ');
+        if (parts[0] !== 'digidine') {
+            // Find or create an error message element
+            let errorMsg = document.getElementById('scanError');
+            if (!errorMsg) {
+                errorMsg = document.createElement('p');
+                errorMsg.id = 'scanError';
+            }
+            
+            // Show the error message
+            errorMsg.textContent = "Invalid QR Code! Please try again.";
+            
+            // Clear the error message after 3 seconds
+            setTimeout(() => {
+                if (errorMsg) errorMsg.textContent = "";
+            }, 2000);
+            
+            // Reset lastResult so it doesn't completely ignore this QR code if they scan it again later
+            lastResult = ""; 
+            
+            // The magic word: "return" stops the function here and PREVENTS the redirect.
+            // The camera will naturally continue scanning!
+            return;
+        }
+        else if (parts.length >= 3 && parts[0] === 'digidine') {
+            restaurantId = parts[1];
+            tableNum = parts[2].replace(/[^0-9]/g, '');
+        } else {
+            let fallbackNum = decodedText.replace(/[^0-9]/g, ''); 
+            if (fallbackNum) tableNum = fallbackNum;
+        }
+        
+        // Save both the restaurant and table to session storage
+        sessionStorage.setItem('currentRestaurant', restaurantId);
         sessionStorage.setItem('currentTable', tableNum);
         
-        // Redirect to the menu
         window.location.href = 'menu.html';
     }
 
-    function onScanFailure(error) {
-        // Handle scan failure silently. 
-        // The library checks frames multiple times a second, so errors are normal while focusing.
+    // 1. Security Check
+    // if (window.location.protocol === 'file:') {
+    //     if (readerDiv) readerDiv.innerHTML = '<h3 style="color:red; text-align:center; padding: 20px;">Camera Blocked!<br>Please open this page via http://localhost:3000</h3>';
+    // } 
+    // else 
+        if (typeof Html5Qrcode !== 'undefined') {
+        
+        // 2. FORCE THE BROWSER PERMISSION POPUP FIRST
+        navigator.mediaDevices.getUserMedia({ video: true })
+            .then((stream) => {
+                // The user clicked "Allow"! 
+                // Stop this temporary permission stream so the scanner can use the camera
+                stream.getTracks().forEach(track => track.stop());
+
+                // Now it is safe to start the scanner because we have permission
+                const html5QrCode = new Html5Qrcode("reader");
+                
+                html5QrCode.start(
+                    { facingMode: "environment" }, // Prioritize the back camera on mobile
+                    { fps: 10, qrbox: { width: 250, height: 250 } },
+                    (decodedText) => processScan(decodedText),
+                    (errorMessage) => { /* Silently ignore background scanning errors */ }
+                ).catch(err => {
+                    console.error("Scanner Start Error:", err);
+                    if (readerDiv) readerDiv.innerHTML = `<p style="color:red; text-align:center;">Failed to start scanner.</p>`;
+                });
+            })
+            .catch((err) => {
+                // The user clicked "Block" or the browser blocked it automatically
+                console.error("Camera permissions denied:", err);
+                if (readerDiv) readerDiv.innerHTML = '<p style="color:red; text-align:center;">Camera access denied. Please click the lock icon next to your URL bar, allow Camera access, and refresh the page.</p>';
+            });
     }
 
-    // Initialize the scanner
-    const html5QrcodeScanner = new Html5QrcodeScanner(
-        "reader",
-        { fps: 10, qrbox: {width: 250, height: 250} },
-        /* verbose= */ false
-    );
-    
-    // Start scanning
-    html5QrcodeScanner.render(onScanSuccess, onScanFailure);
-
-    // --- Simulate Scan Button (For Desktop Testing) ---
+    // Fallback Simulate Button for desktop testing
     const simulateBtn = document.getElementById('simulateScanBtn');
     if (simulateBtn) {
         simulateBtn.addEventListener('click', () => {
+            sessionStorage.setItem('currentRestaurant', 'urban-bistro');
             sessionStorage.setItem('currentTable', '5');
             window.location.href = 'menu.html';
         });

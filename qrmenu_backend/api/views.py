@@ -6,6 +6,8 @@ import json
 from django.http import JsonResponse
 from .firebase import firestore_db, realtime_db
 from django.views.decorators.csrf import csrf_exempt
+import razorpay
+from django.conf import settings
 
 from django.shortcuts import render
 
@@ -121,3 +123,34 @@ def get_menu(request, restaurant_id):
         items.append({"id": doc.id, **doc.to_dict()})
         
     return JsonResponse({'items': items})
+
+
+# Initialize Razorpay Client (Replace with your actual Test keys!)
+razorpay_client = razorpay.Client(auth=("rzp_test_SRN9gxagO0uE67", "B9qonq6axnDDnSwSEi3wNgYM"))
+
+@csrf_exempt
+def create_payment(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            # Razorpay expects the amount in paise (multiply INR by 100)
+            amount = int(float(data.get('amount', 0)) * 100)
+            
+            # Create the order in Razorpay
+            razorpay_order = razorpay_client.order.create({
+                "amount": amount,
+                "currency": "INR",
+                "payment_capture": "1" # Auto-capture the payment
+            })
+            
+            return JsonResponse({
+                'status': 'success',
+                'razorpay_order_id': razorpay_order['id'],
+                'amount': amount,
+                'currency': 'INR'
+            })
+        except Exception as e:
+            print("Razorpay Error:", str(e))
+            return JsonResponse({'error': str(e)}, status=400)
+            
+    return JsonResponse({'error': 'Only POST allowed'}, status=405)

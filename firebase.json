@@ -1,0 +1,20 @@
+{
+  "auth": {
+    "providers": {
+      "emailPassword": true,
+      "googleSignIn": {
+        "oAuthBrandDisplayName": "DigiDineLogin",
+        "supportEmail": "support@undefined.firebaseapp.com"
+      }
+    }
+  },
+  "emulators": {
+    "auth": {
+      "port": 8080
+    },
+    "ui": {
+      "enabled": true
+    },
+    "singleProjectMode": true
+  }
+}
