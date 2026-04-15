@@ -152,14 +152,14 @@ TEMPLATES = [
 # For deployment
 import os # Make sure this is at the top of your settings.py
 
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
 
 # The absolute path where collectstatic will gather all static files for production
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 # Tell Django where to find your custom CSS/JS files (your public folder)
 STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, '../public'), 
+    os.path.join(BASE_DIR, 'public'), 
 ]
 
 # Optional but recommended: Add WhiteNoise caching/compression for faster loading
