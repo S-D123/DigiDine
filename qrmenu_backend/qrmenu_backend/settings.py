@@ -44,6 +44,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -149,14 +150,24 @@ TEMPLATES = [
 # STATIC_URL = '/static/'
 
 # For deployment
-# Static files settings
-STATIC_URL = '/static/'
+import os # Make sure this is at the top of your settings.py
+
+STATIC_URL = 'static/'
+
+# The absolute path where collectstatic will gather all static files for production
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
-# The folder(s) where Django should look for CSS, JS, and Images
+# Tell Django where to find your custom CSS/JS files (your public folder)
 STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, 'public') # Assuming your css/js are in the same 'public' folder
+    os.path.join(BASE_DIR, '../public'), 
 ]
+
+# Optional but recommended: Add WhiteNoise caching/compression for faster loading
+STORAGES = {
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+    },
+}
 
 # Tell Django to trust secure requests coming from ngrok domains
 CSRF_TRUSTED_ORIGINS = [
