@@ -2,8 +2,8 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
-    path('restaurants/<str:restaurant_id>/', views.get_restaurant),
-    path('restaurants/<str:restaurant_id>/menu-items/', views.get_menu),
+    path('restaurants/<str:restaurant_id>/', views.get_restaurant, name='get_restaurant'),
+    path('restaurants/<str:restaurant_id>/menu-items/', views.get_menu, name='get_menu'),
 
     # for real time order
     path('orders/place/', views.place_order),
