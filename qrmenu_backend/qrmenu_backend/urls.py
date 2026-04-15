@@ -20,15 +20,14 @@ from api import views as api_views # Import your views here
 from django.views.generic import TemplateView
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
-    path('api/', include('api.urls')), # This links the /api/ route to your app
+    path('admin_panel/', admin.site.urls), # Renamed to avoid clashing with your custom admin.html
+    path('api/', include('api.urls')),
 
-    # Add this line to serve the index.html on the base domain!
     path('', api_views.serve_index, name='index'),
     path('menu/', TemplateView.as_view(template_name='menu.html'), name='menu'),
-    path('styles.css/', TemplateView.as_view(template_name='styles.css'), name='styles'),
-    path('admin/', TemplateView.as_view(template_name='admin.html'), name='admin'),
-    path('login.html/', TemplateView.as_view(template_name='login.html'), name='login'),
-    path('script.js/', TemplateView.as_view(template_name='script.js'), name='script'),
-    path('scan.html/', TemplateView.as_view(template_name='scan.html'), name='scan')
+    path('scan/', TemplateView.as_view(template_name='scan.html'), name='scan'),
+    path('login/', TemplateView.as_view(template_name='login.html'), name='login'),
+    path('dashboard/', TemplateView.as_view(template_name='admin.html'), name='dashboard'),
+    
+    # REMOVED script.js and styles.css paths. Django handles them via /static/
 ]

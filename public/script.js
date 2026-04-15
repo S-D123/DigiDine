@@ -12,7 +12,8 @@ function formatCurrency(amount) {
     return '$' + parseFloat(amount).toFixed(2);
 }
 
-const API_BASE_URL = window.location.origin + '/api';
+// const API_BASE_URL = window.location.origin + '/api';
+const API_BASE_URL = 'http://127.0.0.1:8000/api' 
 
 // Get current date/time formatted
 function getCurrentDateTime() {
@@ -221,7 +222,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     sessionStorage.setItem('isLoggedIn', 'true');
                     sessionStorage.setItem('userEmail', email.value);
                     // Redirect to menu demo
-                    window.location.href = '/scan.html/';
+                    window.location.href = '/scan/';
                 }, 1500);
             }
         });
@@ -1104,65 +1105,65 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // 2. Render to Screen
-    // function renderLiveOrders(liveOrders) {
-    //     if (!activeOrdersGrid) return;
-    //     activeOrdersGrid.innerHTML = '';
+    function renderLiveOrders(liveOrders) {
+        if (!activeOrdersGrid) return;
+        activeOrdersGrid.innerHTML = '';
 
-    //     if (liveOrders.length === 0) {
-    //         activeOrdersGrid.innerHTML = `<p style="color: var(--gray-500);">No active orders at the moment.</p>`;
-    //         return;
-    //     }
+        if (liveOrders.length === 0) {
+            activeOrdersGrid.innerHTML = `<p style="color: var(--gray-500);">No active orders at the moment.</p>`;
+            return;
+        }
 
-    //     liveOrders.forEach(order => {
-    //         const card = document.createElement('div');
-    //         card.className = `admin-order-card status-${order.status}`;
+        liveOrders.forEach(order => {
+            const card = document.createElement('div');
+            card.className = `admin-order-card status-${order.status}`;
             
-    //         const items = order.items || [];
-    //         const itemsHtml = items.map(item => `
-    //             <div class="admin-order-item">
-    //                 <span>${item.qty}x ${item.name}</span>
-    //             </div>
-    //         `).join('');
+            const items = order.items || [];
+            const itemsHtml = items.map(item => `
+                <div class="admin-order-item">
+                    <span>${item.qty}x ${item.name}</span>
+                </div>
+            `).join('');
 
-    //         // CHANGED: Removed inline onclicks, replaced with data attributes and a standard class
-    //         let buttonsHtml = '';
-    //         if (order.status === 'pending') {
-    //             buttonsHtml = `<button class="btn btn-primary btn-block status-btn" data-id="${order.id}" data-status="preparing">Accept & Prepare</button>`;
-    //         } else if (order.status === 'preparing') {
-    //             buttonsHtml = `<button class="btn btn-success btn-block status-btn" style="background:var(--success); color:white;" data-id="${order.id}" data-status="ready">Mark as Ready</button>`;
-    //         } else if (order.status === 'ready') {
-    //             buttonsHtml = `<button class="btn btn-outline btn-block status-btn" data-id="${order.id}" data-status="completed">Served to Table</button>`;
-    //         }
+            // CHANGED: Removed inline onclicks, replaced with data attributes and a standard class
+            let buttonsHtml = '';
+            if (order.status === 'pending') {
+                buttonsHtml = `<button class="btn btn-primary btn-block status-btn" data-id="${order.id}" data-status="preparing">Accept & Prepare</button>`;
+            } else if (order.status === 'preparing') {
+                buttonsHtml = `<button class="btn btn-success btn-block status-btn" style="background:var(--success); color:white;" data-id="${order.id}" data-status="ready">Mark as Ready</button>`;
+            } else if (order.status === 'ready') {
+                buttonsHtml = `<button class="btn btn-outline btn-block status-btn" data-id="${order.id}" data-status="completed">Served to Table</button>`;
+            }
 
-    //         card.innerHTML = `
-    //             <div class="admin-order-header">
-    //                 <span class="admin-order-table">Table ${order.table}</span>
-    //                 <span class="admin-order-time">${order.timePlaced || 'Just now'}</span>
-    //             </div>
-    //             <div class="admin-order-items">
-    //                 ${itemsHtml}
-    //             </div>
-    //             <div class="admin-order-actions">
-    //                 ${buttonsHtml}
-    //             </div>
-    //         `;
-    //         activeOrdersGrid.appendChild(card);
-    //     });
+            card.innerHTML = `
+                <div class="admin-order-header">
+                    <span class="admin-order-table">Table ${order.table}</span>
+                    <span class="admin-order-time">${order.timePlaced || 'Just now'}</span>
+                </div>
+                <div class="admin-order-items">
+                    ${itemsHtml}
+                </div>
+                <div class="admin-order-actions">
+                    ${buttonsHtml}
+                </div>
+            `;
+            activeOrdersGrid.appendChild(card);
+        });
 
-    //     // CHANGED: Safely attach event listeners to all generated buttons
-    //     document.querySelectorAll('.status-btn').forEach(btn => {
-    //         btn.addEventListener('click', function() {
-    //             const orderId = this.dataset.id;
-    //             const newStatus = this.dataset.status;
+        // CHANGED: Safely attach event listeners to all generated buttons
+        document.querySelectorAll('.status-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const orderId = this.dataset.id;
+                const newStatus = this.dataset.status;
                 
-    //             // Show loading state on the button immediately
-    //             this.disabled = true;
-    //             this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Updating...';
+                // Show loading state on the button immediately
+                this.disabled = true;
+                this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Updating...';
                 
-    //             updateOrderStatusApi(orderId, newStatus);
-    //         });
-    //     });
-    // }
+                updateOrderStatusApi(orderId, newStatus);
+            });
+        });
+    }
 
     // 3. Update Status back to Django (RENAMED to avoid conflicts)
     async function updateOrderStatusApi(orderId, newStatus) {
@@ -1468,7 +1469,7 @@ document.addEventListener('DOMContentLoaded', function() {
         sessionStorage.setItem('currentRestaurant', restaurantId);
         sessionStorage.setItem('currentTable', tableNum);
         
-        window.location.href = 'menu.html';
+        window.location.href = '/menu/';
     }
 
     // 1. Security Check
@@ -1511,7 +1512,7 @@ document.addEventListener('DOMContentLoaded', function() {
         simulateBtn.addEventListener('click', () => {
             sessionStorage.setItem('currentRestaurant', 'urban-bistro');
             sessionStorage.setItem('currentTable', '5');
-            window.location.href = 'menu.html';
+            window.location.href = '/menu/';
         });
     }
 });

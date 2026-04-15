@@ -1,3 +1,4 @@
+import os
 """
 Django settings for qrmenu_backend project.
 
@@ -118,8 +119,6 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
-STATIC_URL = 'static/'
-
 CORS_ALLOW_ALL_ORIGINS = True
 
 # for production, we would use
@@ -147,7 +146,12 @@ TEMPLATES = [
 ]
 
 # The URL prefix for static files
+# STATIC_URL = '/static/'
+
+# For deployment
+# Static files settings
 STATIC_URL = '/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 # The folder(s) where Django should look for CSS, JS, and Images
 STATICFILES_DIRS = [

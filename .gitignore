@@ -13,3 +13,5 @@ Thumbs.db
 # IDE
 .vscode/
 *.log
+qrmenu_backend/api/gcp-key.json
+gcp-key.json
