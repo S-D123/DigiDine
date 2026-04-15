@@ -7,28 +7,6 @@ from dotenv import load_dotenv
 load_dotenv()
 
 def get_service_account_from_env():
-    keys = [
-        "GOOGLE_TYPE",
-        "GOOGLE_PROJECT_ID",
-        "GOOGLE_PRIVATE_KEY_ID",
-        "GOOGLE_PRIVATE_KEY",
-        "GOOGLE_CLIENT_EMAIL",
-        "GOOGLE_CLIENT_ID",
-        "GOOGLE_AUTH_URI",
-        "GOOGLE_TOKEN_URI",
-        "GOOGLE_AUTH_PROVIDER_X509_CERT_URL",
-        "GOOGLE_CLIENT_X509_CERT_URL",
-        "GOOGLE_UNIVERSE_DOMAIN"
-    ]
-    # Some .env files may not have all keys, so filter out missing ones
-    service_account = {}
-    for key in keys:
-        value = os.environ.get(key)
-        if value:
-            # Fix escaped newlines in private key
-            if key == "GOOGLE_PRIVATE_KEY":
-                value = value.replace('\\n', '\n')
-            service_account[key.lower().replace("google_", "").replace("_", "")] = value
     # Map to expected JSON keys
     mapping = {
         "type": "GOOGLE_TYPE",
@@ -43,13 +21,16 @@ def get_service_account_from_env():
         "client_x509_cert_url": "GOOGLE_CLIENT_X509_CERT_URL",
         "universe_domain": "GOOGLE_UNIVERSE_DOMAIN"
     }
+    
     json_dict = {}
     for json_key, env_key in mapping.items():
         val = os.environ.get(env_key)
         if val:
             if json_key == "private_key":
-                val = val.replace('\\n', '\n')
+                # Strip leading/trailing quotes and replace escaped newlines
+                val = val.strip().strip('\'"').replace('\\n', '\n')
             json_dict[json_key] = val
+            
     return json_dict
 
 # Try to get credentials from env, fallback to file if not present
