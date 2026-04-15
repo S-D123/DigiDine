@@ -14,7 +14,7 @@ function formatCurrency(amount) {
 
 // const API_BASE_URL = window.location.origin + '/api';
 // const API_BASE_URL = 'http://127.0.0.1:8000/api' 
-const API_BASE_URL = '' 
+const API_BASE_URL = '/api' 
 
 
 // Get current date/time formatted
@@ -413,7 +413,7 @@ document.addEventListener('DOMContentLoaded', function() {
     async function fetchMenuData() {
         try {
             // 1. Fetch Restaurant Info
-            const resResponse = await fetch(`${API_BASE_URL}/restaurants/${RESTAURANT_ID}/`);
+            const resResponse = await fetch(`${API_BASE_URL}/restaurants/${RESTAURANT_ID}`);
             if (resResponse.ok) {
                 const restaurantData = await resResponse.json();
                 document.querySelector('.restaurant-info h1').textContent = restaurantData.name;
@@ -431,7 +431,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
                 
             // 2. Fetch Menu Items
-            const menuResponse = await fetch(`${API_BASE_URL}/restaurants/${RESTAURANT_ID}/menu-items/`);
+            const menuResponse = await fetch(`${API_BASE_URL}/restaurants/${RESTAURANT_ID}/menu-items`);
             if (menuResponse.ok) {
                 const menuData = await menuResponse.json();
                 renderMenuGrid(menuData.items);
